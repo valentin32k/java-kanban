@@ -37,18 +37,8 @@ public class Manager {
     }
 
     public void addTask(Task task) {
-//        Здесь мне бы хотелось написать что-нибудь вроде:
-//        public void addTask(String name, String description, byte status) {
-//            int id = this.getId();
-//            tasksById.put(id, new Task(name,description,id,status));
-//        },
-//        но требование ТЗ - передавать методу новый объект (экземпляр класса Task).
-//        В этой версии метода addTask предполагаю, что task приходит с нулевым id (добавил в Task новый конструктор),
-//        а корректный id присваивается менеджером.
-//        Мне кажется криво, но как правильно я не знаю.
-//        Подскажи правильный вариант реализации метода, на следующей итерации все поправлю
         if (task != null) {
-            int id = this.getId();
+            int id = getId();
             tasksById.put(id, new Task(task.getName(), task.getDescription(), id, task.getStatus()));
         } else {
             System.out.println("Передано пустое значение task");
@@ -56,7 +46,11 @@ public class Manager {
     }
 
     public void updateTask(Task task) {
-        tasksById.put(task.getId(), task);
+        if ((task != null) && (tasksById.get(task.getId()) != null)) {
+            tasksById.put(task.getId(), task);
+        } else {
+            System.out.println("Переданы не корректные значения");
+        }
     }
 
     public void removeTask(int id) {
@@ -78,7 +72,7 @@ public class Manager {
 
     public void addEpic(Epic epic) {
         if (epic != null) {
-            int id = this.getId();
+            int id = getId();
             epicsById.put(id, new Epic(epic.getName(), epic.getDescription(), id));
         } else {
             System.out.println("Передано пустое значение epic");
@@ -90,10 +84,6 @@ public class Manager {
 
     public void updateEpic(Epic epic) {
         if ((epic != null) && (epicsById.get(epic.getId()) != null)) {
-            if (!epic.getSubtasksId().isEmpty()) {
-                System.out.println("Перечень подзадач не будет добавлен в эпик. " +
-                        "Для изменения состава подзадач необходимо использовать методы addSubtask(), removeSubtask()");
-            }
             Epic currentEpic = epicsById.get(epic.getId());
             HashSet<Integer> currentSubtasksId = currentEpic.getSubtasksId();
             epic.clearSubtasksId();
@@ -120,11 +110,11 @@ public class Manager {
 
     public HashMap<Integer, Subtask> getEpicSubtasks(int id) {
         if (epicsById.get(id) != null) {
-            HashMap<Integer, Subtask> subtasksList = new HashMap<>();
+            HashMap<Integer, Subtask> epicSubtasksById = new HashMap<>();
             for (Integer subtaskKey : epicsById.get(id).getSubtasksId()) {
-                subtasksList.put(subtaskKey, subtasksById.get(subtaskKey));
+                epicSubtasksById.put(subtaskKey, subtasksById.get(subtaskKey));
             }
-            return subtasksList;
+            return epicSubtasksById;
         } else {
             System.out.println("Эпика с таким id не существует");
             return null;
@@ -149,7 +139,7 @@ public class Manager {
     public void addSubtask(Subtask subtask) {
         if (subtask != null) {
             int epicId = subtask.getEpicId();
-            int subtaskId = this.getId();
+            int subtaskId = getId();
 
             Epic tmpEpic = epicsById.get(epicId);
             if (tmpEpic != null) {
@@ -169,21 +159,24 @@ public class Manager {
     }
 
     public void updateSubtask(Subtask subtask) {
-        if ((subtask != null)
-                && (subtasksById.get(subtask.getId()) != null)
-                && (epicsById.get(subtask.getEpicId()) != null)) {
-            int newEpicId = subtask.getEpicId();
-            int currentEpicId = subtasksById.get(subtask.getId()).getEpicId();
-            if (currentEpicId != newEpicId) {
-                epicsById.get(currentEpicId).removeSubtaskId(subtask.getId());
-                epicsById.get(currentEpicId).updateEpicStatus(subtasksById);
-                epicsById.get(newEpicId).addSubtaskId(subtask.getId());
-            }
-            subtasksById.put(subtask.getId(), subtask);
-            epicsById.get(newEpicId).updateEpicStatus(subtasksById);
-        } else {
-            System.out.println("Переданы не корректные значения");
+        if (subtask == null) {
+            return;
         }
+        if (subtasksById.get(subtask.getId()) == null) {
+            return;
+        }
+        if (epicsById.get(subtask.getEpicId()) == null) {
+            return;
+        }
+        int newEpicId = subtask.getEpicId();
+        int currentEpicId = subtasksById.get(subtask.getId()).getEpicId();
+        if (currentEpicId != newEpicId) {
+            epicsById.get(currentEpicId).removeSubtaskId(subtask.getId());
+            epicsById.get(currentEpicId).updateEpicStatus(subtasksById);
+            epicsById.get(newEpicId).addSubtaskId(subtask.getId());
+        }
+        subtasksById.put(subtask.getId(), subtask);
+        epicsById.get(newEpicId).updateEpicStatus(subtasksById);
     }
 
     public void removeSubtask(int id) {
