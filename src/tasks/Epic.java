@@ -1,5 +1,6 @@
 package tasks;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -12,13 +13,18 @@ public class Epic extends AbstractTask {
         subtasksId = new HashSet<>();
     }
 
+    public Epic(String name, String description) {
+        super(name, description, 0);
+        subtasksId = new HashSet<>();
+    }
+
     public final HashSet<Integer> getSubtasksId() {
         return subtasksId;
     }
 
     public final void clearSubtasksId() {
         subtasksId.clear();
-        setStatus(NEW);
+        setStatus(Status.NEW);
     }
 
     public final void addSubtaskId(int id) {
@@ -29,25 +35,25 @@ public class Epic extends AbstractTask {
         subtasksId.remove(id);
     }
 
-    public final void checkEpicStatus(HashMap<Integer, Subtask> subtasksById) {
+    public final void updateEpicStatus(HashMap<Integer, Subtask> subtasksById) {
         boolean isNew = true;
         boolean isDone = true;
 
         for (Integer id : subtasksId) {
-            if (subtasksById.get(id).getStatus() != NEW) {
+            if (subtasksById.get(id).getStatus() != Status.NEW) {
                 isNew = false;
             }
-            if (subtasksById.get(id).getStatus() != DONE) {
+            if (subtasksById.get(id).getStatus() != Status.DONE) {
                 isDone = false;
             }
         }
 
         if (isNew) {
-            this.setStatus(NEW);
+            this.setStatus(Status.NEW);
         } else if (isDone) {
-            this.setStatus(DONE);
+            this.setStatus(Status.DONE);
         } else {
-            this.setStatus(IN_PROGRESS);
+            this.setStatus(Status.IN_PROGRESS);
         }
     }
 
@@ -58,6 +64,7 @@ public class Epic extends AbstractTask {
                 ", description='" + super.getDescription() + '\'' +
                 ", id=" + super.getId() +
                 ", status=" + super.getStatus() +
+                ", subtasksId=" + Arrays.toString(subtasksId.toArray()) +
                 '}';
     }
 }

@@ -1,9 +1,6 @@
 package tasks;
 
 public abstract class AbstractTask {
-    public static final byte NEW = 0;
-    public static final byte IN_PROGRESS = 1;
-    public static final byte DONE = 2;
 
     private final String name;
     private final String description;
@@ -14,7 +11,7 @@ public abstract class AbstractTask {
         this.name = name;
         this.description = description;
         this.id = id;
-        this.status = NEW;
+        this.status = Status.NEW;
     }
 
     protected AbstractTask(String name, String description, int id, byte status) {

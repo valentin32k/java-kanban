@@ -6,6 +6,10 @@ public class Task extends AbstractTask {
         super(name, description, id, status);
     }
 
+    public Task(String name, String description, byte status) {
+        super(name, description, 0, status);
+    }
+
     @Override
     public String toString() {
         return "Task{" +

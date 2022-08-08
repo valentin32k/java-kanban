@@ -8,6 +8,11 @@ public class Subtask extends AbstractTask {
         this.epicId = epicId;
     }
 
+    public Subtask(String name, String description, int epicId, byte status) {
+        super(name, description, 0, status);
+        this.epicId = epicId;
+    }
+
     public final int getEpicId() {
         return epicId;
     }
