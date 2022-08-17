@@ -3,12 +3,12 @@ package tasks;
 public class Subtask extends AbstractTask {
     private final int epicId;
 
-    public Subtask(String name, String description, int epicId, int id, byte status) {
+    public Subtask(String name, String description, int epicId, int id, Status status) {
         super(name, description, id, status);
         this.epicId = epicId;
     }
 
-    public Subtask(String name, String description, int epicId, byte status) {
+    public Subtask(String name, String description, int epicId, Status status) {
         super(name, description, 0, status);
         this.epicId = epicId;
     }

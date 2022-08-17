@@ -1,41 +1,52 @@
 package manager;
 
+import tasks.AbstractTask;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
-public class Manager {
+public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasksById;
     private final HashMap<Integer, Epic> epicsById;
     private final HashMap<Integer, Subtask> subtasksById;
     private int idGenerator;
 
-    public Manager() {
+    private HistoryManager history;
+
+
+    public InMemoryTaskManager() {
         tasksById = new HashMap<>();
         epicsById = new HashMap<>();
         subtasksById = new HashMap<>();
         idGenerator = 0;
+        history = Managers.getDefaultHistory();
     }
 
     private int getId() {
         return ++idGenerator;
     }
 
+    @Override
     public HashMap<Integer, Task> getTasks() {
         return tasksById;
     }
 
+    @Override
     public void clearTasks() {
         tasksById.clear();
     }
 
+    @Override
     public Task getTask(int id) {
+        history.add(tasksById.get(id));
         return tasksById.get(id);
     }
 
+    @Override
     public void addTask(Task task) {
         if (task != null) {
             int id = getId();
@@ -45,6 +56,7 @@ public class Manager {
         }
     }
 
+    @Override
     public void updateTask(Task task) {
         if ((task != null) && (tasksById.get(task.getId()) != null)) {
             tasksById.put(task.getId(), task);
@@ -53,23 +65,29 @@ public class Manager {
         }
     }
 
+    @Override
     public void removeTask(int id) {
         tasksById.remove(id);
     }
 
+    @Override
     public HashMap<Integer, Epic> getEpics() {
         return epicsById;
     }
 
+    @Override
     public void clearEpics() {
         subtasksById.clear();
         epicsById.clear();
     }
 
+    @Override
     public Epic getEpic(int id) {
+        history.add(epicsById.get(id));
         return epicsById.get(id);
     }
 
+    @Override
     public void addEpic(Epic epic) {
         if (epic != null) {
             int id = getId();
@@ -82,6 +100,7 @@ public class Manager {
         }
     }
 
+    @Override
     public void updateEpic(Epic epic) {
         if ((epic != null) && (epicsById.get(epic.getId()) != null)) {
             Epic currentEpic = epicsById.get(epic.getId());
@@ -97,6 +116,7 @@ public class Manager {
         }
     }
 
+    @Override
     public void removeEpic(int id) {
         if (epicsById.get(id) != null) {
             for (Integer subtaskKey : epicsById.get(id).getSubtasksId()) {
@@ -108,6 +128,7 @@ public class Manager {
         }
     }
 
+    @Override
     public HashMap<Integer, Subtask> getEpicSubtasks(int id) {
         if (epicsById.get(id) != null) {
             HashMap<Integer, Subtask> epicSubtasksById = new HashMap<>();
@@ -121,10 +142,12 @@ public class Manager {
         }
     }
 
+    @Override
     public HashMap<Integer, Subtask> getSubtasks() {
         return subtasksById;
     }
 
+    @Override
     public void clearSubtasks() {
         for (Epic epic : epicsById.values()) {
             epic.clearSubtasksId();
@@ -132,10 +155,13 @@ public class Manager {
         subtasksById.clear();
     }
 
+    @Override
     public Subtask getSubtask(int id) {
+        history.add(subtasksById.get(id));
         return subtasksById.get(id);
     }
 
+    @Override
     public void addSubtask(Subtask subtask) {
         if (subtask != null) {
             int epicId = subtask.getEpicId();
@@ -158,6 +184,7 @@ public class Manager {
         }
     }
 
+    @Override
     public void updateSubtask(Subtask subtask) {
         if (subtask == null) {
             return;
@@ -179,6 +206,7 @@ public class Manager {
         epicsById.get(newEpicId).updateEpicStatus(subtasksById);
     }
 
+    @Override
     public void removeSubtask(int id) {
         if (subtasksById.get(id) != null) {
             int epicId = subtasksById.get(id).getEpicId();
@@ -188,5 +216,10 @@ public class Manager {
         } else {
             System.out.println("Подзадачи с таким id не существует");
         }
+    }
+
+    @Override
+    public List<AbstractTask> getHistory() {
+        return history.getHistory();
     }
 }

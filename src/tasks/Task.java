@@ -2,11 +2,11 @@ package tasks;
 
 public class Task extends AbstractTask {
 
-    public Task(String name, String description, int id, byte status) {
+    public Task(String name, String description, int id, Status status) {
         super(name, description, id, status);
     }
 
-    public Task(String name, String description, byte status) {
+    public Task(String name, String description, Status status) {
         super(name, description, 0, status);
     }
 

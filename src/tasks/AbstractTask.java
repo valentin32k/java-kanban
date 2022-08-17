@@ -5,7 +5,7 @@ public abstract class AbstractTask {
     private final String name;
     private final String description;
     private final int id;
-    private byte status;
+    private Status status;
 
     protected AbstractTask(String name, String description, int id) {
         this.name = name;
@@ -14,7 +14,7 @@ public abstract class AbstractTask {
         this.status = Status.NEW;
     }
 
-    protected AbstractTask(String name, String description, int id, byte status) {
+    protected AbstractTask(String name, String description, int id, Status status) {
         this.name = name;
         this.description = description;
         this.id = id;
@@ -33,11 +33,11 @@ public abstract class AbstractTask {
         return id;
     }
 
-    public final byte getStatus() {
+    public final Status getStatus() {
         return status;
     }
 
-    protected final void setStatus(byte status) {
+    protected final void setStatus(Status status) {
         this.status = status;
     }
 }
