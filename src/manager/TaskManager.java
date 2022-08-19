@@ -10,43 +10,43 @@ import java.util.List;
 
 public interface TaskManager {
 
-    public HashMap<Integer, Task> getTasks();
+    HashMap<Integer, Task> getTasks();
 
-    public void clearTasks();
+    void clearTasks();
 
-    public Task getTask(int id);
+    Task getTask(int id);
 
-    public void addTask(Task task);
+    void addTask(Task task);
 
-    public void updateTask(Task task);
+    void updateTask(Task task);
 
-    public void removeTask(int id);
+    void removeTask(int id);
 
-    public HashMap<Integer, Epic> getEpics();
+    HashMap<Integer, Epic> getEpics();
 
-    public void clearEpics();
+    void clearEpics();
 
-    public Epic getEpic(int id);
+    Epic getEpic(int id);
 
-    public void addEpic(Epic epic);
+    void addEpic(Epic epic);
 
-    public void updateEpic(Epic epic);
+    void updateEpic(Epic epic);
 
-    public void removeEpic(int id);
+    void removeEpic(int id);
 
-    public HashMap<Integer, Subtask> getEpicSubtasks(int id);
+    HashMap<Integer, Subtask> getEpicSubtasks(int id);
 
-    public HashMap<Integer, Subtask> getSubtasks();
+    HashMap<Integer, Subtask> getSubtasks();
 
-    public void clearSubtasks();
+    void clearSubtasks();
 
-    public Subtask getSubtask(int id);
+    Subtask getSubtask(int id);
 
-    public void addSubtask(Subtask subtask);
+    void addSubtask(Subtask subtask);
 
-    public void updateSubtask(Subtask subtask);
+    void updateSubtask(Subtask subtask);
 
-    public void removeSubtask(int id);
+    void removeSubtask(int id);
 
-    public List<AbstractTask> getHistory();
+    List<AbstractTask> getHistory();
 }

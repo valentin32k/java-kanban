@@ -13,9 +13,8 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasksById;
     private final HashMap<Integer, Epic> epicsById;
     private final HashMap<Integer, Subtask> subtasksById;
+    private final HistoryManager history;
     private int idGenerator;
-
-    private HistoryManager history;
 
 
     public InMemoryTaskManager() {
@@ -92,11 +91,11 @@ public class InMemoryTaskManager implements TaskManager {
         if (epic != null) {
             int id = getId();
             epicsById.put(id, new Epic(epic.getName(), epic.getDescription(), id));
+            if (!epic.getSubtasksId().isEmpty()) {
+                System.out.println("Записан только эпик. Для добавления подзадач необходимо воспользоваться методом addSubtask()");
+            }
         } else {
             System.out.println("Передано пустое значение epic");
-        }
-        if (!epic.getSubtasksId().isEmpty()) {
-            System.out.println("Записан только эпик. Для добавления подзадач необходимо воспользоваться методом addSubtask()");
         }
     }
 

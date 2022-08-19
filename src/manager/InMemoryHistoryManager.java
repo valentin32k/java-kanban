@@ -2,14 +2,16 @@ package manager;
 
 import tasks.AbstractTask;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private List<AbstractTask> history;
+    private static final int STORED_NUMBER_OF_RECORDS = 10;
+    private final List<AbstractTask> history;
+
 
     public InMemoryHistoryManager() {
-        history = new ArrayList<>();
+        history = new LinkedList<>();
     }
 
     @Override
@@ -17,7 +19,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (task != null) {
             history.add(task);
         }
-        if (history.size() > 10) {
+        if (history.size() > STORED_NUMBER_OF_RECORDS) {
             history.remove(0);
         }
     }
