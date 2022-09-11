@@ -47,10 +47,13 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         private void removeNode(Node node) {
+//            Как ты такие вещи замечаешь? Есть какой-то секрет или это опыт???
             if (node == head) {
                 head = node.next;
                 if (head != null) {
                     head.prev = null;
+                } else {
+                    tail = null;
                 }
             } else if (node == tail) {
                 tail = node.prev;

@@ -6,8 +6,6 @@ public class Main {
 
     public static void main(String[] args) {
 
-//        Привет!
-//        Спасибо за рекомендации. Все поправил
 
         System.out.println("\n1. Две задачи, эпик с тремя подзадачами и эпик без подзадач");
         TaskManager manager = Managers.getDefault();
