@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    //    Я же правильно понял, что ограничения на размер истории не нужны?
-//    private static final int STORED_NUMBER_OF_RECORDS = 10;
+
     private final CustomLinkedList history;
 
     public InMemoryHistoryManager() {
@@ -19,6 +18,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public void add(AbstractTask task) {
         if (task != null) {
+            if (history.contains(task.getId())) {
+                history.removeById(task.getId());
+            }
             history.linkLast(task);
         }
     }
@@ -47,7 +49,9 @@ public class InMemoryHistoryManager implements HistoryManager {
         private void removeNode(Node node) {
             if (node == head) {
                 head = node.next;
-                head.prev = null;
+                if (head != null) {
+                    head.prev = null;
+                }
             } else if (node == tail) {
                 tail = node.prev;
                 tail.next = null;
@@ -65,10 +69,11 @@ public class InMemoryHistoryManager implements HistoryManager {
             }
         }
 
+        public boolean contains(int taskId) {
+            return nodeById.containsKey(taskId);
+        }
+
         public void linkLast(AbstractTask task) {
-            if (nodeById.containsKey(task.getId())) {
-                removeNode(nodeById.get(task.getId()));
-            }
             Node node = new Node(task);
             if (tail == null) {
                 head = node;
