@@ -44,6 +44,7 @@ public class Main {
         manager.getSubtask(4);
         manager.getSubtask(5);
         manager.getSubtask(4);
+
         System.out.println();
         for (AbstractTask task : manager.getHistory()) {
             System.out.println(task);

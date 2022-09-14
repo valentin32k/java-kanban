@@ -1,11 +1,10 @@
 package manager;
 
 import tasks.AbstractTask;
+import tasks.Status;
+import tasks.Task;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
 
@@ -13,6 +12,27 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     public InMemoryHistoryManager() {
         history = new CustomLinkedList();
+
+//        AbstractTask task1 = new Task("Task1", "Tasssk1", 1, Status.NEW);
+//        AbstractTask task2 = new Task("Task2", "Tasssk2", 2, Status.IN_PROGRESS);
+//        history.linkLast(task1);
+//        history.linkLast(task1);
+//        history.linkLast(task2);
+//
+//        for (AbstractTask task : getHistory()) {
+//            System.out.println(task);
+//        }
+//        history.removeById(1);
+//        System.out.println();
+//        for (AbstractTask task : getHistory()) {
+//            System.out.println(task);
+//        }
+//        history.removeById(1);
+//
+//        System.out.println();
+//        for (AbstractTask task : getHistory()) {
+//            System.out.println(task);
+//        }
     }
 
     @Override
@@ -38,16 +58,15 @@ public class InMemoryHistoryManager implements HistoryManager {
     private class CustomLinkedList {
         private Node head;
         private Node tail;
-        final private Map<Integer, Node> nodeById;
+        final private Map<Integer, List<Node>> listNodeById;
 
         public CustomLinkedList() {
             head = null;
             tail = null;
-            nodeById = new HashMap<>();
+            listNodeById = new HashMap<>();
         }
 
         private void removeNode(Node node) {
-//            Как ты такие вещи замечаешь? Есть какой-то секрет или это опыт???
             if (node == head) {
                 head = node.next;
                 if (head != null) {
@@ -62,18 +81,23 @@ public class InMemoryHistoryManager implements HistoryManager {
                 node.prev.next = node.next;
                 node.next.prev = node.prev;
             }
-            nodeById.remove(node.value.getId());
+            int nodeId = node.value.getId();
+            List<Node> listNode = listNodeById.get(nodeId);
+            listNode.remove(0);
+            if (listNode.isEmpty()) {
+                listNodeById.remove(nodeId);
+            }
         }
 
         public void removeById(int id) {
-            Node node = nodeById.get(id);
-            if (node != null) {
-                removeNode(node);
+            List<Node> listNode = listNodeById.get(id);
+            if (listNode != null) {
+                removeNode(listNode.get(0));
             }
         }
 
         public boolean contains(int taskId) {
-            return nodeById.containsKey(taskId);
+            return listNodeById.containsKey(taskId);
         }
 
         public void linkLast(AbstractTask task) {
@@ -86,7 +110,12 @@ public class InMemoryHistoryManager implements HistoryManager {
                 node.prev = tail;
                 tail = node;
             }
-            nodeById.put(task.getId(), node);
+            List<Node> listNode = listNodeById.get(task.getId());
+            if (listNode == null) {
+                listNode = new LinkedList<>();
+            }
+            listNode.add(node);
+            listNodeById.put(task.getId(), listNode);
         }
 
         public ArrayList<AbstractTask> getTasks() {
