@@ -17,6 +17,22 @@ public class Subtask extends AbstractTask {
         return epicId;
     }
 
+    public static String toString(Subtask subtask) {
+        return subtask.getId() +
+                "," + TaskType.SUBTASK +
+                "," + subtask.getName() +
+                "," + subtask.getStatus() +
+                "," + subtask.getDescription() +
+                "," + subtask.getEpicId();
+    }
+
+    public static Subtask fromString(String value) {
+        String[] subtaskArray = value.split(",");
+        return new Subtask(subtaskArray[2], subtaskArray[4], Integer.valueOf(subtaskArray[5]),
+                Integer.valueOf(subtaskArray[0]), Status.valueOf(subtaskArray[3]));
+    }
+
+    @Override
     public String toString() {
         return "Subtask{" +
                 "name='" + super.getName() + '\'' +

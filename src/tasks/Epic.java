@@ -57,6 +57,19 @@ public class Epic extends AbstractTask {
         }
     }
 
+    public static String toString(Epic epic) {
+        return epic.getId() +
+                "," + TaskType.EPIC +
+                "," + epic.getName() +
+                "," + epic.getStatus() +
+                "," + epic.getDescription();
+    }
+
+    public static Epic fromString(String value) {
+        String[] epicArray = value.split(",");
+        return new Epic(epicArray[2], epicArray[4], Integer.valueOf(epicArray[0]));
+    }
+
     @Override
     public String toString() {
         return "Epic{" +

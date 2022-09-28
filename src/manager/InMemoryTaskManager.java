@@ -14,7 +14,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasksById;
     private final HashMap<Integer, Epic> epicsById;
     private final HashMap<Integer, Subtask> subtasksById;
-    private final HistoryManager history;
+    protected final HistoryManager history;
     private int idGenerator;
 
 
@@ -51,7 +51,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addTask(Task task) {
         if (task != null) {
-            int id = getId();
+            int id = task.getId();
+            if (id == 0) {
+                id = getId();
+            }
             tasksById.put(id, new Task(task.getName(), task.getDescription(), id, task.getStatus()));
         } else {
             System.out.println("Передано пустое значение task");
@@ -94,7 +97,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addEpic(Epic epic) {
         if (epic != null) {
-            int id = getId();
+            int id = epic.getId();
+            if (id == 0) {
+                id = getId();
+            }
             epicsById.put(id, new Epic(epic.getName(), epic.getDescription(), id));
             if (!epic.getSubtasksId().isEmpty()) {
                 System.out.println("Записан только эпик. Для добавления подзадач необходимо воспользоваться методом addSubtask()");
@@ -171,8 +177,10 @@ public class InMemoryTaskManager implements TaskManager {
     public void addSubtask(Subtask subtask) {
         if (subtask != null) {
             int epicId = subtask.getEpicId();
-            int subtaskId = getId();
-
+            int subtaskId = subtask.getId();
+            if (subtaskId == 0) {
+                subtaskId = getId();
+            }
             Epic tmpEpic = epicsById.get(epicId);
             if (tmpEpic != null) {
                 subtasksById.put(subtaskId, new Subtask(subtask.getName(),

@@ -1,10 +1,11 @@
 package manager;
 
 import tasks.AbstractTask;
-import tasks.Status;
-import tasks.Task;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
 
@@ -12,27 +13,6 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     public InMemoryHistoryManager() {
         history = new CustomLinkedList();
-
-//        AbstractTask task1 = new Task("Task1", "Tasssk1", 1, Status.NEW);
-//        AbstractTask task2 = new Task("Task2", "Tasssk2", 2, Status.IN_PROGRESS);
-//        history.linkLast(task1);
-//        history.linkLast(task1);
-//        history.linkLast(task2);
-//
-//        for (AbstractTask task : getHistory()) {
-//            System.out.println(task);
-//        }
-//        history.removeById(1);
-//        System.out.println();
-//        for (AbstractTask task : getHistory()) {
-//            System.out.println(task);
-//        }
-//        history.removeById(1);
-//
-//        System.out.println();
-//        for (AbstractTask task : getHistory()) {
-//            System.out.println(task);
-//        }
     }
 
     @Override
@@ -110,12 +90,8 @@ public class InMemoryHistoryManager implements HistoryManager {
                 node.prev = tail;
                 tail = node;
             }
-            List<Node> listNode = listNodeById.get(task.getId());
-            if (listNode == null) {
-                listNode = new LinkedList<>();
-            }
+            List<Node> listNode = listNodeById.computeIfAbsent(task.getId(), k -> new ArrayList<>());
             listNode.add(node);
-            listNodeById.put(task.getId(), listNode);
         }
 
         public ArrayList<AbstractTask> getTasks() {

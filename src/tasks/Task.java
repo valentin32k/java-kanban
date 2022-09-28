@@ -10,6 +10,20 @@ public class Task extends AbstractTask {
         super(name, description, 0, status);
     }
 
+    public static String toString(Task task) {
+        return task.getId() +
+                "," + TaskType.TASK +
+                "," + task.getName() +
+                "," + task.getStatus() +
+                "," + task.getDescription();
+    }
+
+    public static Task fromString(String value) {
+        String[] taskArray = value.split(",");
+        return new Task(taskArray[2], taskArray[4],
+                Integer.valueOf(taskArray[0]), Status.valueOf(taskArray[3]));
+    }
+
     @Override
     public String toString() {
         return "Task{" +
