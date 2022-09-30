@@ -4,6 +4,7 @@ import tasks.AbstractTask;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface HistoryManager {
     void add(AbstractTask task);
@@ -12,13 +13,16 @@ public interface HistoryManager {
 
     List<AbstractTask> getHistory();
 
+//    Я тут засомневался. Может быть методам historyToString и
+//    historyFromString все таки место в FileBackedTaskManager???
     static String historyToString(HistoryManager manager) {
-        List<AbstractTask> history = manager.getHistory();
-        String historyId = "";
+//    Не сообразил как по другому из List<AbstractTask> сделать List<String>,
+//    а без этого на моем компьютере эта магия работать отказывалась
+        List<String> list = new ArrayList<>();
         for (AbstractTask task : manager.getHistory()) {
-            historyId += task.getId() + ",";
+            list.add(String.valueOf(task.getId()));
         }
-        return historyId;
+        return list.stream().collect(Collectors.joining(","));
     }
 
     static List<Integer> historyFromString(String value) {
@@ -26,9 +30,7 @@ public interface HistoryManager {
             String[] tasksId = value.split(",");
             List<Integer> list = new ArrayList<>();
             for (String id : tasksId) {
-                if (!"".equals(id)) {
-                    list.add(Integer.valueOf(id));
-                }
+                list.add(Integer.valueOf(id));
             }
             return list;
         } else {

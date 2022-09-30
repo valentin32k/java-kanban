@@ -17,7 +17,7 @@ public class Subtask extends AbstractTask {
         return epicId;
     }
 
-    public static String toString(Subtask subtask) {
+    public static String toCsvString(Subtask subtask) {
         return subtask.getId() +
                 "," + TaskType.SUBTASK +
                 "," + subtask.getName() +
@@ -26,7 +26,7 @@ public class Subtask extends AbstractTask {
                 "," + subtask.getEpicId();
     }
 
-    public static Subtask fromString(String value) {
+    public static Subtask fromCsvString(String value) {
         String[] subtaskArray = value.split(",");
         return new Subtask(subtaskArray[2], subtaskArray[4], Integer.valueOf(subtaskArray[5]),
                 Integer.valueOf(subtaskArray[0]), Status.valueOf(subtaskArray[3]));

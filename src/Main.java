@@ -13,7 +13,7 @@ public class Main {
         Path tasksFile = Paths.get("tasks.txt");
 
 //        1. Заведите несколько разных задач, эпиков и подзадач.
-        TaskManager manager = Managers.getDefaultFileTask(tasksFile);
+        TaskManager manager = new FileBackedTaskManager(tasksFile);
         manager.addTask(new Task("Задача 1", "Описание задачи 1", Status.NEW));
         manager.addTask(new Task("Задача 2", "Описание задачи 2", Status.DONE));
         manager.addEpic(new Epic("Эпик 1", "Описание эпика 1"));
@@ -35,6 +35,7 @@ public class Main {
 
 //        3. Создайте новый FileBackedTasksManager менеджер из этого же файла.
         FileBackedTaskManager newManager = Managers.loadFromFile(tasksFile);
+        newManager.addTask(new Task("Задача 3", "Описание задачи 3", Status.DONE));
 
 //        4. Проверьте, что история просмотра восстановилась верно и все задачи, эпики, подзадачи, которые были в старом, есть в новом менеджере.
         System.out.println("1. Tasks\n- old");

@@ -54,6 +54,8 @@ public class InMemoryTaskManager implements TaskManager {
             int id = task.getId();
             if (id == 0) {
                 id = getId();
+            } else if (id > idGenerator) {
+                idGenerator = id;
             }
             tasksById.put(id, new Task(task.getName(), task.getDescription(), id, task.getStatus()));
         } else {
@@ -100,6 +102,8 @@ public class InMemoryTaskManager implements TaskManager {
             int id = epic.getId();
             if (id == 0) {
                 id = getId();
+            } else if (id > idGenerator) {
+                idGenerator = id;
             }
             epicsById.put(id, new Epic(epic.getName(), epic.getDescription(), id));
             if (!epic.getSubtasksId().isEmpty()) {
@@ -180,6 +184,8 @@ public class InMemoryTaskManager implements TaskManager {
             int subtaskId = subtask.getId();
             if (subtaskId == 0) {
                 subtaskId = getId();
+            } else if (subtaskId > idGenerator) {
+                idGenerator = subtaskId;
             }
             Epic tmpEpic = epicsById.get(epicId);
             if (tmpEpic != null) {

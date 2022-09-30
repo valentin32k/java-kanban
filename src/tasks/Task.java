@@ -10,7 +10,7 @@ public class Task extends AbstractTask {
         super(name, description, 0, status);
     }
 
-    public static String toString(Task task) {
+    public static String toCsvString(Task task) {
         return task.getId() +
                 "," + TaskType.TASK +
                 "," + task.getName() +
@@ -18,7 +18,7 @@ public class Task extends AbstractTask {
                 "," + task.getDescription();
     }
 
-    public static Task fromString(String value) {
+    public static Task fromCsvString(String value) {
         String[] taskArray = value.split(",");
         return new Task(taskArray[2], taskArray[4],
                 Integer.valueOf(taskArray[0]), Status.valueOf(taskArray[3]));

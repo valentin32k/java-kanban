@@ -114,13 +114,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try (BufferedWriter writer = Files.newBufferedWriter(tasksFile, StandardCharsets.UTF_8)) {
             writer.write("id,type,name,status,description,epic\n");
             for (Task task : getTasks().values()) {
-                writer.write(Task.toString(task) + "\n");
+                writer.write(Task.toCsvString(task) + "\n");
             }
             for (Epic epic : getEpics().values()) {
-                writer.write(Epic.toString(epic) + "\n");
+                writer.write(Epic.toCsvString(epic) + "\n");
             }
             for (Subtask subtask : getSubtasks().values()) {
-                writer.write(Subtask.toString(subtask) + "\n");
+                writer.write(Subtask.toCsvString(subtask) + "\n");
             }
             writer.write("\n");
             writer.write(HistoryManager.historyToString(history));

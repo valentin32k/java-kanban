@@ -20,28 +20,24 @@ public class Managers {
         return new InMemoryHistoryManager();
     }
 
-    public static TaskManager getDefaultFileTask(Path tasksFile) {
-        return new FileBackedTaskManager(tasksFile);
-    }
-
     public static FileBackedTaskManager loadFromFile(Path tasksFile) {
         FileBackedTaskManager manager = new FileBackedTaskManager(tasksFile);
         try (BufferedReader reader = Files.newBufferedReader(tasksFile, StandardCharsets.UTF_8)) {
-            String tmpString;
-            String[] tmpArray;
+//            Мне казалось, что создавать новые переменные на каждой итерации цикла - это лишние затраты машинного времени.
+//            Тем более, что область видимости этих переменных ограничена try, в котором ничего кроме цикла и нет
             while (reader.ready()) {
-                tmpString = reader.readLine();
-                tmpArray = tmpString.split(",");
+                String tmpString = reader.readLine();
+                String[] tmpArray = tmpString.split(",");
                 if (!tmpString.isEmpty()) {
                     switch (tmpArray[1]) {
                         case "TASK":
-                            manager.addTask(Task.fromString(tmpString));
+                            manager.addTask(Task.fromCsvString(tmpString));
                             break;
                         case "EPIC":
-                            manager.addEpic(Epic.fromString(tmpString));
+                            manager.addEpic(Epic.fromCsvString(tmpString));
                             break;
                         case "SUBTASK":
-                            manager.addSubtask(Subtask.fromString(tmpString));
+                            manager.addSubtask(Subtask.fromCsvString(tmpString));
                             break;
                     }
                 } else {

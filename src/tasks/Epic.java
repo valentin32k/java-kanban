@@ -57,7 +57,7 @@ public class Epic extends AbstractTask {
         }
     }
 
-    public static String toString(Epic epic) {
+    public static String toCsvString(Epic epic) {
         return epic.getId() +
                 "," + TaskType.EPIC +
                 "," + epic.getName() +
@@ -65,7 +65,7 @@ public class Epic extends AbstractTask {
                 "," + epic.getDescription();
     }
 
-    public static Epic fromString(String value) {
+    public static Epic fromCsvString(String value) {
         String[] epicArray = value.split(",");
         return new Epic(epicArray[2], epicArray[4], Integer.valueOf(epicArray[0]));
     }
