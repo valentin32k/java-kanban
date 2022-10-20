@@ -1,27 +1,17 @@
 package tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class Task extends AbstractTask {
 
-    public Task(String name, String description, int id, Status status) {
-        super(name, description, id, status);
+    public Task(String name, String description, int id, Status status, LocalDateTime startTime, Duration duration) {
+        super(name, description, id, status, startTime, duration);
     }
 
-    public Task(String name, String description, Status status) {
-        super(name, description, 0, status);
-    }
-
-    public static String toCsvString(Task task) {
-        return task.getId() +
-                "," + TaskType.TASK +
-                "," + task.getName() +
-                "," + task.getStatus() +
-                "," + task.getDescription();
-    }
-
-    public static Task fromCsvString(String value) {
-        String[] taskArray = value.split(",");
-        return new Task(taskArray[2], taskArray[4],
-                Integer.valueOf(taskArray[0]), Status.valueOf(taskArray[3]));
+    public Task(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+        super(name, description, 0, status, startTime, duration);
     }
 
     @Override
@@ -31,6 +21,8 @@ public class Task extends AbstractTask {
                 ", description='" + super.getDescription() + '\'' +
                 ", id=" + super.getId() +
                 ", status=" + super.getStatus() +
+                ", startTime=" + super.getStartTime().format(DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm")) +
+                ", duration=" + super.getDuration().toMinutes() +
                 '}';
     }
 }

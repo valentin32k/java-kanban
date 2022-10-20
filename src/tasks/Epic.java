@@ -1,20 +1,21 @@
 package tasks;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class Epic extends AbstractTask {
 
     private final HashSet<Integer> subtasksId;
 
     public Epic(String name, String description, int id) {
-        super(name, description, id);
+        super(name, description, id, null, null);
         subtasksId = new HashSet<>();
+
     }
 
     public Epic(String name, String description) {
-        super(name, description, 0);
+        super(name, description, 0, null, null);
         subtasksId = new HashSet<>();
     }
 
@@ -55,19 +56,31 @@ public class Epic extends AbstractTask {
         } else {
             this.setStatus(Status.IN_PROGRESS);
         }
+        updateEpicTime(subtasksById);
     }
 
-    public static String toCsvString(Epic epic) {
-        return epic.getId() +
-                "," + TaskType.EPIC +
-                "," + epic.getName() +
-                "," + epic.getStatus() +
-                "," + epic.getDescription();
+    public final void updateEpicTime(HashMap<Integer, Subtask> subtasksById) {
+        Comparator<LocalDateTime> localDateTimeComparator = LocalDateTime::compareTo;
+        Optional<LocalDateTime> epicStartTime = subtasksById.values().stream().map(AbstractTask::getStartTime).min(localDateTimeComparator);
+        if (epicStartTime.isPresent()) {
+            setStartTime(epicStartTime.get());
+        } else {
+            setStartTime(null);
+        }
+        Optional<LocalDateTime> epicEndTime = subtasksById.values().stream().map(t -> t.getStartTime().plus(t.getDuration())).max(localDateTimeComparator);
+        if (epicStartTime.isPresent() && epicEndTime.isPresent()) {
+            setDuration(Duration.between(epicStartTime.get(), epicEndTime.get()));
+        }
+
     }
 
-    public static Epic fromCsvString(String value) {
-        String[] epicArray = value.split(",");
-        return new Epic(epicArray[2], epicArray[4], Integer.valueOf(epicArray[0]));
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Epic epic = (Epic) o;
+        return Objects.equals(subtasksId, epic.subtasksId);
     }
 
     @Override

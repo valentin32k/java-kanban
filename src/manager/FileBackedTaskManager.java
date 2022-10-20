@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final Path tasksFile;
@@ -114,18 +116,27 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try (BufferedWriter writer = Files.newBufferedWriter(tasksFile, StandardCharsets.UTF_8)) {
             writer.write("id,type,name,status,description,epic\n");
             for (Task task : getTasks().values()) {
-                writer.write(Task.toCsvString(task) + "\n");
+                writer.write(CsvConverters.taskToCsvString(task) + "\n");
             }
             for (Epic epic : getEpics().values()) {
-                writer.write(Epic.toCsvString(epic) + "\n");
+                writer.write(CsvConverters.EpicToCsvString(epic) + "\n");
             }
             for (Subtask subtask : getSubtasks().values()) {
-                writer.write(Subtask.toCsvString(subtask) + "\n");
+                writer.write(CsvConverters.SubtaskToCsvString(subtask) + "\n");
             }
             writer.write("\n");
-            writer.write(HistoryManager.historyToString(history));
+            writer.write(CsvConverters.historyToCsvString(history));
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка сохранения в файл");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        FileBackedTaskManager that = (FileBackedTaskManager) o;
+        return tasksFile.toString().equals(that.tasksFile.toString());
     }
 }

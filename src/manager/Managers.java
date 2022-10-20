@@ -1,9 +1,5 @@
 package manager;
 
-import tasks.Epic;
-import tasks.Subtask;
-import tasks.Task;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,26 +19,24 @@ public class Managers {
     public static FileBackedTaskManager loadFromFile(Path tasksFile) {
         FileBackedTaskManager manager = new FileBackedTaskManager(tasksFile);
         try (BufferedReader reader = Files.newBufferedReader(tasksFile, StandardCharsets.UTF_8)) {
-//            Мне казалось, что создавать новые переменные на каждой итерации цикла - это лишние затраты машинного времени.
-//            Тем более, что область видимости этих переменных ограничена try, в котором ничего кроме цикла и нет
             while (reader.ready()) {
                 String tmpString = reader.readLine();
                 String[] tmpArray = tmpString.split(",");
                 if (!tmpString.isEmpty()) {
                     switch (tmpArray[1]) {
                         case "TASK":
-                            manager.addTask(Task.fromCsvString(tmpString));
+                            manager.addTask(CsvConverters.taskFromCsvString(tmpString));
                             break;
                         case "EPIC":
-                            manager.addEpic(Epic.fromCsvString(tmpString));
+                            manager.addEpic(CsvConverters.EpicFromCsvString(tmpString));
                             break;
                         case "SUBTASK":
-                            manager.addSubtask(Subtask.fromCsvString(tmpString));
+                            manager.addSubtask(CsvConverters.SubtaskFromCsvString(tmpString));
                             break;
                     }
                 } else {
                     String str = reader.readLine();
-                    List<Integer> historyFromFile = HistoryManager.historyFromString(str);
+                    List<Integer> historyFromFile = CsvConverters.historyFromCsvString(str);
                     if (historyFromFile != null) {
                         for (Integer id : historyFromFile) {
                             manager.getTask(id);

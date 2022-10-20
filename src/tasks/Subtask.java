@@ -1,15 +1,19 @@
 package tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class Subtask extends AbstractTask {
     private final int epicId;
 
-    public Subtask(String name, String description, int epicId, int id, Status status) {
-        super(name, description, id, status);
+    public Subtask(String name, String description, int epicId, int id, Status status, LocalDateTime startTime, Duration duration) {
+        super(name, description, id, status, startTime, duration);
         this.epicId = epicId;
     }
 
-    public Subtask(String name, String description, int epicId, Status status) {
-        super(name, description, 0, status);
+    public Subtask(String name, String description, int epicId, Status status, LocalDateTime startTime, Duration duration) {
+        super(name, description, 0, status, startTime, duration);
         this.epicId = epicId;
     }
 
@@ -17,19 +21,13 @@ public class Subtask extends AbstractTask {
         return epicId;
     }
 
-    public static String toCsvString(Subtask subtask) {
-        return subtask.getId() +
-                "," + TaskType.SUBTASK +
-                "," + subtask.getName() +
-                "," + subtask.getStatus() +
-                "," + subtask.getDescription() +
-                "," + subtask.getEpicId();
-    }
-
-    public static Subtask fromCsvString(String value) {
-        String[] subtaskArray = value.split(",");
-        return new Subtask(subtaskArray[2], subtaskArray[4], Integer.valueOf(subtaskArray[5]),
-                Integer.valueOf(subtaskArray[0]), Status.valueOf(subtaskArray[3]));
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Subtask subtask = (Subtask) o;
+        return epicId == subtask.epicId;
     }
 
     @Override
@@ -40,6 +38,8 @@ public class Subtask extends AbstractTask {
                 ", epicId=" + epicId +
                 ", id=" + super.getId() +
                 ", status=" + super.getStatus() +
+                ", startTime=" + super.getStartTime().format(DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm")) +
+                ", duration=" + super.getDuration().toMinutes() +
                 '}';
     }
 }
