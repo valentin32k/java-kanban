@@ -1,7 +1,6 @@
 package tests;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tasks.Epic;
 import tasks.Status;
@@ -12,20 +11,16 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 
 class EpicTest {
-    private Epic testEpic;
-
-    @BeforeEach
-    void createEpic() {
-        testEpic = new Epic("Эпик 1", "Описание эпика 1", 1);
-    }
+    private Epic testEpic = new Epic("Эпик 1", "Описание эпика 1", 1);
 
     @Test
-    void epicStatusIsNewWhenSubtaskListIsEmpty() {
+    void epicStatusIsNew_WhenSubtaskListIsEmpty() {
         Assertions.assertEquals(Status.NEW, testEpic.getStatus());
     }
 
     @Test
-    void epicStatusIsNewWhenSubtasksStatusIsNew() {
+    void epicStatusIsNew_WhenSubtasksStatusIsNew() {
+//        given
         HashMap<Integer, Subtask> subtasksById = new HashMap<>();
         Subtask subtask1 = new Subtask("Подзадача 1.1", "Описание подзадачи 1.1", 1, 2, Status.NEW, LocalDateTime.now(), Duration.ofMinutes(601L));
         Subtask subtask2 = new Subtask("Подзадача 1.2", "Описание подзадачи 1.2", 1, 3, Status.NEW, LocalDateTime.now(), Duration.ofMinutes(601L));
@@ -36,12 +31,17 @@ class EpicTest {
         subtasksById.put(subtask1.getId(), subtask1);
         subtasksById.put(subtask2.getId(), subtask2);
         subtasksById.put(subtask3.getId(), subtask3);
+
+//        when
         testEpic.updateEpicStatus(subtasksById);
+
+//        then
         Assertions.assertEquals(Status.NEW, testEpic.getStatus());
     }
 
     @Test
-    void epicStatusIsDoneWhenSubtasksStatusIsDone() {
+    void epicStatusIsDone_WhenSubtasksStatusIsDone() {
+//        given
         HashMap<Integer, Subtask> subtasksById = new HashMap<>();
         Subtask subtask1 = new Subtask("Подзадача 1.1", "Описание подзадачи 1.1", 1, 2, Status.DONE, LocalDateTime.now(), Duration.ofMinutes(601L));
         Subtask subtask2 = new Subtask("Подзадача 1.2", "Описание подзадачи 1.2", 1, 3, Status.DONE, LocalDateTime.now(), Duration.ofMinutes(601L));
@@ -52,12 +52,17 @@ class EpicTest {
         subtasksById.put(subtask1.getId(), subtask1);
         subtasksById.put(subtask2.getId(), subtask2);
         subtasksById.put(subtask3.getId(), subtask3);
+
+//        when
         testEpic.updateEpicStatus(subtasksById);
+
+//        then
         Assertions.assertEquals(Status.DONE, testEpic.getStatus());
     }
 
     @Test
-    void epicStatusIsInProgressWhenSubtasksStatusesIsNewAndDone() {
+    void epicStatusIsInProgress_WhenSubtasksStatusesIsNewAndDone() {
+//        given
         HashMap<Integer, Subtask> subtasksById = new HashMap<>();
         Subtask subtask1 = new Subtask("Подзадача 1.1", "Описание подзадачи 1.1", 1, 2, Status.DONE, LocalDateTime.now(), Duration.ofMinutes(601L));
         Subtask subtask2 = new Subtask("Подзадача 1.2", "Описание подзадачи 1.2", 1, 3, Status.NEW, LocalDateTime.now(), Duration.ofMinutes(601L));
@@ -68,12 +73,17 @@ class EpicTest {
         subtasksById.put(subtask1.getId(), subtask1);
         subtasksById.put(subtask2.getId(), subtask2);
         subtasksById.put(subtask3.getId(), subtask3);
+
+//        when
         testEpic.updateEpicStatus(subtasksById);
+
+//        then
         Assertions.assertEquals(Status.IN_PROGRESS, testEpic.getStatus());
     }
 
     @Test
-    void epicStatusIsInProgressWhenSubtasksStatusIsInProgress() {
+    void epicStatusIsInProgress_WhenSubtasksStatusIsInProgress() {
+//        given
         HashMap<Integer, Subtask> subtasksById = new HashMap<>();
         Subtask subtask1 = new Subtask("Подзадача 1.1", "Описание подзадачи 1.1", 1, 2, Status.IN_PROGRESS, LocalDateTime.now(), Duration.ofMinutes(601L));
         Subtask subtask2 = new Subtask("Подзадача 1.2", "Описание подзадачи 1.2", 1, 3, Status.IN_PROGRESS, LocalDateTime.now(), Duration.ofMinutes(601L));
@@ -84,8 +94,11 @@ class EpicTest {
         subtasksById.put(subtask1.getId(), subtask1);
         subtasksById.put(subtask2.getId(), subtask2);
         subtasksById.put(subtask3.getId(), subtask3);
-        System.out.println(testEpic);
+
+//        when
         testEpic.updateEpicStatus(subtasksById);
+
+//        then
         Assertions.assertEquals(Status.IN_PROGRESS, testEpic.getStatus());
     }
 }

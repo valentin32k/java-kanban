@@ -34,7 +34,7 @@ class HistoryManagerTest {
     }
 
     @Test
-    void add() {
+    void addTasksInHistoryTested() {
         assertDoesNotThrow(() -> manager.add(null), "Исключение при вызове метода add(null)");
         assertEquals(0, manager.getHistory().size(), "Удалось сделать запись null");
         manager.add(task1);
@@ -47,7 +47,7 @@ class HistoryManagerTest {
     }
 
     @Test
-    void remove() {
+    void removeTasksFromHistoryTested() {
         assertDoesNotThrow(() -> manager.remove(0), "Исключение при вызове метода remove с несуществующим id");
         manager.add(task1);
         manager.add(task2);
@@ -58,11 +58,13 @@ class HistoryManagerTest {
         manager.remove(5);
         manager.remove(3);
         manager.remove(7);
-        assertEquals(epic1, manager.getHistory().get(0), "Метод remove работает не корректно");
+//        Здесь просто после всех манипуляций остается список из одного элемента
+        assertEquals(List.of(epic1), manager.getHistory(), "Метод remove работает не корректно");
     }
 
     @Test
-    void getHistory() {
+    void getHistoryTested() {
+//        Я, честно говоря, не знаю как сделать проверку исключений сразу для всех методов
         assertDoesNotThrow(() -> manager.getHistory(), "Исключение при вызове метода getHistory для пустой истории");
         manager.add(task1);
         manager.add(task2);
@@ -71,7 +73,5 @@ class HistoryManagerTest {
         manager.add(subtask1);
         manager.add(task2);
         assertEquals(List.of(task1, epic1, subtask1, task2), manager.getHistory(), "Добавление задач в историю работает не корректно");
-
-
     }
 }

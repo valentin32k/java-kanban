@@ -4,33 +4,56 @@ import tasks.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CsvConverters {
+    public static final String HEADER_LINE = "id,type,name,status,description,epic,start_time,duration\n";
 
     public static String taskToCsvString(Task task) {
+        LocalDateTime startTime = task.getStartTime();
+        String startTimeString;
+        if (startTime == null) {
+            startTimeString = "null";
+        } else {
+            startTimeString = startTime.toString();
+        }
+        Duration duration = task.getDuration();
+        String durationString;
+        if (duration == null) {
+            durationString = "null";
+        } else {
+            durationString = String.valueOf(duration.toMillis());
+        }
         return task.getId() +
                 "," + TaskType.TASK +
                 "," + task.getName() +
                 "," + task.getStatus() +
                 "," + task.getDescription() +
-                "," + task.getStartTime().toString() +
-                "," + task.getDuration().toMillis();
+                "," + startTimeString +
+                "," + durationString;
     }
 
     public static Task taskFromCsvString(String value) {
         String[] taskArray = value.split(",");
+        LocalDateTime startTime;
+        if (taskArray[5] == null) {
+            startTime = null;
+        } else {
+            startTime = LocalDateTime.parse(taskArray[5]);
+        }
         return new Task(taskArray[2],
                 taskArray[4],
                 Integer.valueOf(taskArray[0]),
                 Status.valueOf(taskArray[3]),
-                LocalDateTime.parse(taskArray[5]),
+                startTime,
                 Duration.ofMillis(Long.valueOf(taskArray[6])));
     }
 
-    public static String SubtaskToCsvString(Subtask subtask) {
+    public static String subtaskToCsvString(Subtask subtask) {
         return subtask.getId() +
                 "," + TaskType.SUBTASK +
                 "," + subtask.getName() +
@@ -41,7 +64,7 @@ public class CsvConverters {
                 "," + subtask.getDuration().toMillis();
     }
 
-    public static Subtask SubtaskFromCsvString(String value) {
+    public static Subtask subtaskFromCsvString(String value) {
         String[] subtaskArray = value.split(",");
         return new Subtask(subtaskArray[2],
                 subtaskArray[4],
@@ -52,15 +75,29 @@ public class CsvConverters {
                 Duration.ofMillis(Long.valueOf(subtaskArray[7])));
     }
 
-    public static String EpicToCsvString(Epic epic) {
+    public static String epicToCsvString(Epic epic) {
+        String startTime;
+        if (epic.getStartTime() == null) {
+            startTime = "null";
+        } else {
+            startTime = epic.getStartTime().toString();
+        }
+        String duration;
+        if (epic.getDuration() == null) {
+            duration = "null";
+        } else {
+            duration = String.valueOf(epic.getDuration().toMillis());
+        }
         return epic.getId() +
                 "," + TaskType.EPIC +
                 "," + epic.getName() +
                 "," + epic.getStatus() +
-                "," + epic.getDescription();
+                "," + epic.getDescription() +
+                "," + startTime +
+                "," + duration;
     }
 
-    public static Epic EpicFromCsvString(String value) {
+    public static Epic epicFromCsvString(String value) {
         String[] epicArray = value.split(",");
         return new Epic(epicArray[2], epicArray[4], Integer.valueOf(epicArray[0]));
     }

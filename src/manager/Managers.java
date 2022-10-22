@@ -28,10 +28,10 @@ public class Managers {
                             manager.addTask(CsvConverters.taskFromCsvString(tmpString));
                             break;
                         case "EPIC":
-                            manager.addEpic(CsvConverters.EpicFromCsvString(tmpString));
+                            manager.addEpic(CsvConverters.epicFromCsvString(tmpString));
                             break;
                         case "SUBTASK":
-                            manager.addSubtask(CsvConverters.SubtaskFromCsvString(tmpString));
+                            manager.addSubtask(CsvConverters.subtaskFromCsvString(tmpString));
                             break;
                     }
                 } else {

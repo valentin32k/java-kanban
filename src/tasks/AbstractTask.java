@@ -83,7 +83,4 @@ public abstract class AbstractTask {
                 status == task.status && Objects.equals(duration, task.duration) &&
                 Objects.equals(startTime, task.startTime);
     }
-
-
-
 }

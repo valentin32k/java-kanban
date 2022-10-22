@@ -32,14 +32,28 @@ public class Subtask extends AbstractTask {
 
     @Override
     public String toString() {
+        LocalDateTime startTime = super.getStartTime();
+        String startTimeString;
+        if (startTime == null) {
+            startTimeString = "null";
+        } else {
+            startTimeString = startTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm"));
+        }
+        Duration duration = super.getDuration();
+        String durationString;
+        if (duration == null) {
+            durationString = "null";
+        } else {
+            durationString = String.valueOf(duration.toMinutes());
+        }
         return "Subtask{" +
                 "name='" + super.getName() + '\'' +
                 ", description='" + super.getDescription() + '\'' +
                 ", epicId=" + epicId +
                 ", id=" + super.getId() +
                 ", status=" + super.getStatus() +
-                ", startTime=" + super.getStartTime().format(DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm")) +
-                ", duration=" + super.getDuration().toMinutes() +
+                ", startTime=" + startTimeString +
+                ", duration=" + durationString +
                 '}';
     }
 }

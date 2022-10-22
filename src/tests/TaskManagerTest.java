@@ -86,10 +86,14 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.addTask(taskWithWrongId);
         assertEquals(1, manager.getTasks().size(), "Добавляется задача с неправильным id");
         Task task4 = new Task("Задача 4", "Описание задачи 4", 9, Status.DONE, LocalDateTime.of(2022, 10, 19, 12, 12, 12), Duration.ofMinutes(10));
+        Task task5 = new Task("Задача 5", "Описание задачи 5", 158, Status.NEW, null, null);
+        Task task6 = new Task("Задача 6", "Описание задачи 6", 155, Status.NEW, null, null);
         manager.addTask(task2);
+        manager.addTask(task5);
         manager.addTask(task3);
         manager.addTask(task4);
-        assertEquals(List.of(task2, task3, task1), manager.getPrioritizedTasks(), "Список добавленных задач отличается от ожидаемого");
+        manager.addTask(task6);
+        assertEquals(List.of(task2, task3, task1, task6, task5), manager.getPrioritizedTasks(), "Список добавленных задач отличается от ожидаемого");
     }
 
     @Test
@@ -282,7 +286,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.getTask(5);
         manager.getSubtask(3);
         manager.getEpic(1);
-        assertEquals(List.of(task1, subtask1, manager.getEpic(1)), manager.getHistory(), "Сохраненная история отлична от ожидаемой");
+        assertEquals(List.of(task1, manager.getEpic(1)), manager.getHistory(), "Сохраненная история отлична от ожидаемой");
     }
 
     @Test

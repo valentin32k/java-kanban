@@ -16,7 +16,7 @@ public interface TaskManager {
 
     Task getTask(int id);
 
-    void addTask(Task task);
+    Task addTask(Task task);
 
     void updateTask(Task task);
 
@@ -28,7 +28,7 @@ public interface TaskManager {
 
     Epic getEpic(int id);
 
-    void addEpic(Epic epic);
+    Epic addEpic(Epic epic);
 
     void updateEpic(Epic epic);
 
@@ -42,7 +42,7 @@ public interface TaskManager {
 
     Subtask getSubtask(int id);
 
-    void addSubtask(Subtask subtask);
+    Subtask addSubtask(Subtask subtask);
 
     void updateSubtask(Subtask subtask);
 
