@@ -125,7 +125,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void getEpicsTests() {
         assertDoesNotThrow(() -> manager.getEpics(), "Исключение при вызове метода getEpics() в случае отсутствия эпиков");
-        assertEquals(new HashMap<Integer, Task>(), manager.getEpics(), "В случае отсутствия эпиков возвращает значение, отличное от HashMap<Integer,Epic>()");
+        assertEquals(new HashMap<Integer, Epic>(), manager.getEpics(), "В случае отсутствия эпиков возвращает значение, отличное от HashMap<Integer,Epic>()");
         manager.addEpic(epic1);
         assertEquals(epic1, manager.getEpics().values().toArray()[0], "Добавленный и возвращенный эпики не совпадают");
         manager.addEpic(epic2);

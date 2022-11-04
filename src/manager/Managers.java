@@ -2,14 +2,15 @@ package manager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 public class Managers {
-    public static TaskManager getDefault() {
-        return new InMemoryTaskManager();
+    public static TaskManager getDefault(URI serverUrl) {
+        return new HTTPTaskManager(serverUrl);
     }
 
     public static HistoryManager getDefaultHistory() {

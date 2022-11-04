@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 
 class EpicTest {
-    private Epic testEpic = new Epic("Эпик 1", "Описание эпика 1", 1);
+    private final Epic testEpic = new Epic("Эпик 1", "Описание эпика 1", 1);
 
     @Test
     void epicStatusIsNew_WhenSubtaskListIsEmpty() {

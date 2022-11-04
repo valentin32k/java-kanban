@@ -83,4 +83,9 @@ public abstract class AbstractTask {
                 status == task.status && Objects.equals(duration, task.duration) &&
                 Objects.equals(startTime, task.startTime);
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, description, id, status, duration, startTime);
+    }
 }

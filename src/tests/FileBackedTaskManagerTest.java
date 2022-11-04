@@ -36,7 +36,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
 
 
     @BeforeEach
-    public void createClass() {
+    public void createClass() throws IOException {
         manager = new FileBackedTaskManager(Paths.get("tasks.txt"));
     }
 

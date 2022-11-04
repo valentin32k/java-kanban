@@ -6,7 +6,6 @@ import tasks.Subtask;
 import tasks.Task;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasksById;
@@ -32,21 +31,19 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private boolean isTaskTimeValid(AbstractTask task, TreeSet<AbstractTask> tasksSet) {
-        return tasksSet.stream().allMatch(t->areIntersected(task,t));
+        return tasksSet.stream().allMatch(t -> !areIntersected(task, t));
     }
 
     private boolean areIntersected(AbstractTask task1, AbstractTask task2) {
         if (task1.getStartTime() == null || task2.getStartTime() == null) {
-            return true;
+            return false;
         } else if (task1.getStartTime().isEqual(task2.getStartTime())) {
-            return false;
+            return true;
         } else if (task1.getEndTime().isEqual(task2.getEndTime())) {
-            return false;
+            return true;
         } else {
-            return (!task2.getStartTime().isAfter(task1.getStartTime()) ||
-                    (!task2.getStartTime().isBefore(task1.getEndTime()))) &&
-                    ((!task2.getStartTime().isBefore(task1.getStartTime())) ||
-                    (!task2.getEndTime().isAfter(task1.getStartTime())));
+            return (task1.getEndTime().isAfter(task2.getStartTime()) && task1.getEndTime().isBefore(task2.getEndTime()))
+                    || (task1.getStartTime().isAfter(task2.getStartTime()) && task1.getStartTime().isBefore(task2.getEndTime()));
         }
     }
 
@@ -75,6 +72,10 @@ public class InMemoryTaskManager implements TaskManager {
             System.out.println("Передано пустое значение task");
             return null;
         }
+        if (!isTaskTimeValid(task, tasksTreeSet)) {
+            System.out.println("Временной интервал задачи пересекается с другими задачами");
+            return null;
+        }
         int id = task.getId();
         if (id == 0) {
             id = getId();
@@ -92,37 +93,37 @@ public class InMemoryTaskManager implements TaskManager {
                 task.getStatus(),
                 task.getStartTime(),
                 task.getDuration());
-        if (!isTaskTimeValid(tmpTask,tasksTreeSet)) {
-            System.out.println("Временной интервал задачи пересекается с другими задачами");
-            return null;
-        }
+
         tasksById.put(id, tmpTask);
         tasksTreeSet.add(tmpTask);
         return tmpTask;
     }
 
     @Override
-    public void updateTask(Task task) {
-        if ((task != null) && (tasksById.get(task.getId()) != null)) {
-            TreeSet<AbstractTask> tasksSet = tasksTreeSet;
-            tasksSet.remove(task);
-            if (isTaskTimeValid(task, tasksSet)) {
-                removeTask(task.getId());
-                tasksTreeSet.add(task);
-                tasksById.put(task.getId(), task);
-            } else {
-                System.out.println("Временной интервал задачи пересекается с другими задачами");
-            }
-        } else {
+    public Task updateTask(Task task) {
+        if ((task == null) || (tasksById.get(task.getId()) == null)) {
             System.out.println("Переданы не корректные значения");
+            return null;
         }
+        TreeSet<AbstractTask> tasksSet = new TreeSet<>(tasksTreeSet);
+        tasksSet.remove(task);
+        if (!isTaskTimeValid(task, tasksSet)) {
+            System.out.println("Временной интервал задачи пересекается с другими задачами");
+            return null;
+        }
+        removeTask(task.getId());
+        tasksTreeSet.add(task);
+        tasksById.put(task.getId(), task);
+        return task;
     }
 
     @Override
     public void removeTask(int id) {
-        history.remove(id);
-        tasksTreeSet.remove(tasksById.get(id));
-        tasksById.remove(id);
+        if (tasksById.get(id) != null) {
+            history.remove(id);
+            tasksTreeSet.remove(tasksById.get(id));
+            tasksById.remove(id);
+        }
     }
 
     @Override
@@ -170,7 +171,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateEpic(Epic epic) {
+    public Epic updateEpic(Epic epic) {
         if ((epic != null) && (epicsById.get(epic.getId()) != null)) {
             Epic currentEpic = epicsById.get(epic.getId());
             HashSet<Integer> currentSubtasksId = currentEpic.getSubtasksId();
@@ -180,8 +181,10 @@ public class InMemoryTaskManager implements TaskManager {
             }
             epic.updateEpicStatus(subtasksById);
             epicsById.put(epic.getId(), epic);
+            return epic;
         } else {
             System.out.println("Переданы не корректные значения");
+            return null;
         }
     }
 
@@ -275,20 +278,20 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) {
+    public Subtask updateSubtask(Subtask subtask) {
         if (subtask == null) {
-            return;
+            return null;
         }
         if (subtasksById.get(subtask.getId()) == null) {
-            return;
+            return null;
         }
         if (epicsById.get(subtask.getEpicId()) == null) {
-            return;
+            return null;
         }
         TreeSet<AbstractTask> subtasksSet = tasksTreeSet;
         subtasksSet.remove(subtask);
         if (!isTaskTimeValid(subtask,subtasksSet)) {
-            return;
+            return null;
         }
         int newEpicId = subtask.getEpicId();
         int currentEpicId = subtasksById.get(subtask.getId()).getEpicId();
@@ -300,6 +303,7 @@ public class InMemoryTaskManager implements TaskManager {
         tasksTreeSet.remove(subtasksById.get(subtask.getId()));
         subtasksById.put(subtask.getId(), subtask);
         epicsById.get(newEpicId).updateEpicStatus(subtasksById);
+        return subtask;
     }
 
     @Override
@@ -323,6 +327,6 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<AbstractTask> getPrioritizedTasks() {
-        return tasksTreeSet.stream().collect(Collectors.toList());
+        return new ArrayList<>(tasksTreeSet);
     }
 }

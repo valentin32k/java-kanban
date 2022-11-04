@@ -71,11 +71,8 @@ public class Epic extends AbstractTask {
         Optional<LocalDateTime> epicEndTime = subtasksById
                 .values()
                 .stream()
-                .map(t -> t.getStartTime().plus(t.getDuration()))
+                .map(t -> t.getEndTime())
                 .max(localDateTimeComparator);
-//        В AbstractTask метод getEndTime() возвращает сумму startTime и Duration,
-//        здесь epicEndTime находится как самое позднее endTime входящих в него подзадач,
-//        а duration - как интервал между epicStartTime и epicEndTime
         if (epicStartTime.isPresent() && epicEndTime.isPresent()) {
             setDuration(Duration.between(epicStartTime.get(), epicEndTime.get()));
         }
@@ -88,6 +85,11 @@ public class Epic extends AbstractTask {
         if (!super.equals(o)) return false;
         Epic epic = (Epic) o;
         return Objects.equals(subtasksId, epic.subtasksId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), subtasksId);
     }
 
     @Override

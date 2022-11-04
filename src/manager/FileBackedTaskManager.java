@@ -38,9 +38,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateTask(Task task) {
-        super.updateTask(task);
+    public Task updateTask(Task task) {
+        Task taskToReturn = super.updateTask(task);
         save();
+        return taskToReturn;
     }
 
     @Override
@@ -70,9 +71,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateEpic(Epic epic) {
-        super.updateEpic(epic);
+    public Epic updateEpic(Epic epic) {
+        Epic epicToReturn = super.updateEpic(epic);
         save();
+        return epicToReturn;
     }
 
     @Override
@@ -102,9 +104,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) {
-        super.updateSubtask(subtask);
+    public Subtask updateSubtask(Subtask subtask) {
+        Subtask subtaskToReturn = super.updateSubtask(subtask);
         save();
+        return subtaskToReturn;
     }
 
     @Override
@@ -113,7 +116,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         save();
     }
 
-    private void save() {
+    protected void save() {
         try (BufferedWriter writer = Files.newBufferedWriter(tasksFile, StandardCharsets.UTF_8)) {
             writer.write(CsvConverters.HEADER_LINE);
             for (Task task : getTasks().values()) {
