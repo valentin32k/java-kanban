@@ -37,7 +37,6 @@ public class KVServer {
 
 	private void load(HttpExchange h) throws IOException {
 		try {
-//			System.out.println("\n/load");
 			if (!hasAuth(h)) {
 				System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
 				h.sendResponseHeaders(403, 0);
@@ -54,6 +53,11 @@ public class KVServer {
 				h.sendResponseHeaders(400, 0);
 				return;
 			}
+			if (data.get(key) == null) {
+				System.out.println("Запрошенная запись с ключом " + key + " отсутствует");
+				h.sendResponseHeaders(404, 0);
+				return;
+			}
 			Gson gson = new Gson();
 			String response = gson.toJson(data.get(key));
 			h.sendResponseHeaders(200, 0);
@@ -67,7 +71,6 @@ public class KVServer {
 
 	private void save(HttpExchange h) throws IOException {
 		try {
-//			System.out.println("\n/save");
 			if (!hasAuth(h)) {
 				System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
 				h.sendResponseHeaders(403, 0);
@@ -81,11 +84,11 @@ public class KVServer {
 					return;
 				}
 				String value = readText(h);
-				if (value.isEmpty()) {
-					System.out.println("Value для сохранения пустой. value указывается в теле запроса");
-					h.sendResponseHeaders(400, 0);
-					return;
-				}
+//				if (value.isEmpty()) {
+//					System.out.println("Value для сохранения пустой. value указывается в теле запроса");
+//					h.sendResponseHeaders(400, 0);
+//					return;
+//				}
 				data.put(key, value);
 //				System.out.println("Значение для ключа " + key + " успешно обновлено!");
 				h.sendResponseHeaders(200, 0);
@@ -112,9 +115,6 @@ public class KVServer {
 	}
 
 	public void start() {
-//		System.out.println("Запускаем сервер на порту " + PORT);
-//		System.out.println("Открой в браузере http://localhost:" + PORT + "/");
-//		System.out.println("API_TOKEN: " + apiToken);
 		server.start();
 	}
 

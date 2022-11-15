@@ -8,10 +8,10 @@ import tasks.Task;
 import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final HashMap<Integer, Task> tasksById;
-    private final HashMap<Integer, Epic> epicsById;
-    private final HashMap<Integer, Subtask> subtasksById;
-    private final TreeSet<AbstractTask> tasksTreeSet;
+    protected final HashMap<Integer, Task> tasksById;
+    protected final HashMap<Integer, Epic> epicsById;
+    protected final HashMap<Integer, Subtask> subtasksById;
+    protected final TreeSet<AbstractTask> tasksTreeSet;
     protected final HistoryManager history;
     private int idGenerator;
 
@@ -20,7 +20,9 @@ public class InMemoryTaskManager implements TaskManager {
         epicsById = new HashMap<>();
         subtasksById = new HashMap<>();
         history = Managers.getDefaultHistory();
-        Comparator<AbstractTask> tasksComparator = Comparator.comparing(AbstractTask::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
+        Comparator<AbstractTask> tasksComparator = Comparator
+                .comparing(AbstractTask::getStartTime,
+                        Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(AbstractTask::getId);
         tasksTreeSet = new TreeSet<>(tasksComparator);
         idGenerator = 0;
@@ -193,8 +195,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (epicsById.get(id) != null) {
             Set<Integer> keySet = epicsById.get(id).getSubtasksId();
             Integer[] keyArray = keySet.toArray(new Integer[keySet.size()]);
-            for (int i = 0; i < keyArray.length; i++) {
-                removeSubtask(keyArray[i]);
+            for (Integer key : keyArray) {
+                removeSubtask(key);
             }
             history.remove(id);
             epicsById.remove(id);

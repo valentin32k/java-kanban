@@ -31,10 +31,8 @@ class EpicTest {
         subtasksById.put(subtask1.getId(), subtask1);
         subtasksById.put(subtask2.getId(), subtask2);
         subtasksById.put(subtask3.getId(), subtask3);
-
 //        when
         testEpic.updateEpicStatus(subtasksById);
-
 //        then
         Assertions.assertEquals(Status.NEW, testEpic.getStatus());
     }
@@ -52,10 +50,8 @@ class EpicTest {
         subtasksById.put(subtask1.getId(), subtask1);
         subtasksById.put(subtask2.getId(), subtask2);
         subtasksById.put(subtask3.getId(), subtask3);
-
 //        when
         testEpic.updateEpicStatus(subtasksById);
-
 //        then
         Assertions.assertEquals(Status.DONE, testEpic.getStatus());
     }
@@ -73,10 +69,8 @@ class EpicTest {
         subtasksById.put(subtask1.getId(), subtask1);
         subtasksById.put(subtask2.getId(), subtask2);
         subtasksById.put(subtask3.getId(), subtask3);
-
 //        when
         testEpic.updateEpicStatus(subtasksById);
-
 //        then
         Assertions.assertEquals(Status.IN_PROGRESS, testEpic.getStatus());
     }
@@ -94,10 +88,8 @@ class EpicTest {
         subtasksById.put(subtask1.getId(), subtask1);
         subtasksById.put(subtask2.getId(), subtask2);
         subtasksById.put(subtask3.getId(), subtask3);
-
 //        when
         testEpic.updateEpicStatus(subtasksById);
-
 //        then
         Assertions.assertEquals(Status.IN_PROGRESS, testEpic.getStatus());
     }

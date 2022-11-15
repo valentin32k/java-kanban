@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Managers {
     public static TaskManager getDefault(URI serverUrl) {
-        return new HTTPTaskManager(serverUrl);
+        return new HttpTaskManager(serverUrl);
     }
 
     public static HistoryManager getDefaultHistory() {
@@ -19,6 +19,7 @@ public class Managers {
 
     public static FileBackedTaskManager loadFromFile(Path tasksFile) {
         FileBackedTaskManager manager = new FileBackedTaskManager(tasksFile);
+        CsvTaskSerializer csvTaskSerializer = new CsvTaskSerializer();
         try (BufferedReader reader = Files.newBufferedReader(tasksFile, StandardCharsets.UTF_8)) {
             while (reader.ready()) {
                 String tmpString = reader.readLine();
@@ -26,18 +27,18 @@ public class Managers {
                 if (!tmpString.isEmpty()) {
                     switch (tmpArray[1]) {
                         case "TASK":
-                            manager.addTask(CsvConverters.taskFromCsvString(tmpString));
+                            manager.addTask(csvTaskSerializer.taskFromString(tmpString));
                             break;
                         case "EPIC":
-                            manager.addEpic(CsvConverters.epicFromCsvString(tmpString));
+                            manager.addEpic(csvTaskSerializer.epicFromString(tmpString));
                             break;
                         case "SUBTASK":
-                            manager.addSubtask(CsvConverters.subtaskFromCsvString(tmpString));
+                            manager.addSubtask(csvTaskSerializer.subtaskFromString(tmpString));
                             break;
                     }
                 } else {
                     String str = reader.readLine();
-                    List<Integer> historyFromFile = CsvConverters.historyFromCsvString(str);
+                    List<Integer> historyFromFile = csvTaskSerializer.historyFromString(str);
                     if (historyFromFile != null) {
                         for (Integer id : historyFromFile) {
                             manager.getTask(id);

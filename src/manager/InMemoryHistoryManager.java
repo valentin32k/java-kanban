@@ -35,7 +35,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         return history.getTasks();
     }
 
-    private class CustomLinkedList {
+    private static class CustomLinkedList {
         private Node head;
         private Node tail;
         final private Map<Integer, List<Node>> listNodeById;

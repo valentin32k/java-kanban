@@ -42,6 +42,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
 
     @Test
     public void writeFileTests() {
+//        given
         manager = new FileBackedTaskManager(Paths.get("tasks.txt"));
         manager.addTask(task);
         manager.addEpic(epic1);
@@ -54,10 +55,12 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
         manager.getSubtask(4);
         manager.getTask(1);
         try (BufferedReader reader = Files.newBufferedReader(Paths.get("tasks.txt"), StandardCharsets.UTF_8)) {
+//            when
             StringBuilder fileData = new StringBuilder();
             while (reader.ready()) {
                 fileData.append(reader.readLine());
             }
+//            then
             Assertions.assertEquals(FILE_CONTENT_WHEN_WRITING, fileData.toString(), "Записанные значения отличаются от ожидаемых");
         } catch (IOException e) {
             e.printStackTrace();
@@ -66,7 +69,9 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
 
     @Test
     public void readFileTests() {
+//        when
         manager = Managers.loadFromFile(Paths.get("tasksTest.txt"));
+//        then
         Assertions.assertEquals(task, manager.getTasks().values().toArray()[0], "Ошибка при чтении задач");
         Assertions.assertEquals(subtask1, manager.getSubtask(4), "Ошибка при чтении подзадачи 1");
         Assertions.assertEquals(subtask2, manager.getSubtask(5), "Ошибка при чтении подзадачи 2");

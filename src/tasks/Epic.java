@@ -12,7 +12,6 @@ public class Epic extends AbstractTask {
     public Epic(String name, String description, int id) {
         super(name, description, id, null, null);
         subtasksId = new HashSet<>();
-
     }
 
     public Epic(String name, String description) {
@@ -49,7 +48,6 @@ public class Epic extends AbstractTask {
                 isDone = false;
             }
         }
-
         if (isNew) {
             this.setStatus(Status.NEW);
         } else if (isDone) {

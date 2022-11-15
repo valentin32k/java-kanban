@@ -118,18 +118,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     protected void save() {
         try (BufferedWriter writer = Files.newBufferedWriter(tasksFile, StandardCharsets.UTF_8)) {
-            writer.write(CsvConverters.HEADER_LINE);
+            writer.write(CsvTaskSerializer.HEADER_LINE);
+            CsvTaskSerializer csvTaskSerializer = new CsvTaskSerializer();
             for (Task task : getTasks().values()) {
-                writer.write(CsvConverters.taskToCsvString(task) + "\n");
+                writer.write(csvTaskSerializer.taskToString(task) + "\n");
             }
             for (Epic epic : getEpics().values()) {
-                writer.write(CsvConverters.epicToCsvString(epic) + "\n");
+                writer.write(csvTaskSerializer.epicToString(epic) + "\n");
             }
             for (Subtask subtask : getSubtasks().values()) {
-                writer.write(CsvConverters.subtaskToCsvString(subtask) + "\n");
+                writer.write(csvTaskSerializer.subtaskToString(subtask) + "\n");
             }
             writer.write("\n");
-            writer.write(CsvConverters.historyToCsvString(history));
+            writer.write(csvTaskSerializer.historyToString(getHistory()));
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка сохранения в файл");
         }
