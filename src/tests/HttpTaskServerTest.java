@@ -1,7 +1,7 @@
 package tests;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import manager.JsonTaskSerializer;
 import manager.TaskManager;
 import org.junit.jupiter.api.AfterEach;
@@ -10,7 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.HttpTaskServer;
 import server.KVServer;
-import tasks.*;
+import tasks.Epic;
+import tasks.Status;
+import tasks.Subtask;
+import tasks.Task;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,7 +22,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 class HttpTaskServerTest {
     private Task task1;
@@ -33,9 +37,9 @@ class HttpTaskServerTest {
     private Subtask subtask3;
     private TaskManager manager;
     private KVServer server;
-    private String apiToken;
     private JsonTaskSerializer jsonTaskSerializer;
     HttpTaskServer taskServer;
+    Gson gson;
 
     private String sendRequestToTaskManager(String kindOfTask, String jsonBody, String method) throws IOException, InterruptedException {
         HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(jsonBody);
@@ -58,17 +62,8 @@ class HttpTaskServerTest {
         return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
     }
 
-    private String getValuesFromKVServer(String key) throws IOException, InterruptedException {
-        HttpRequest.Builder reqBuilder = HttpRequest.newBuilder();
-        HttpRequest request = reqBuilder.uri(URI.create("http://localhost:8078/load/" + key + "?API_TOKEN=" + apiToken)).GET().build();
-        HttpClient client = HttpClient.newHttpClient();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
-    }
-
     @BeforeEach
-    public void createClass() throws IOException, InterruptedException {
-//        given
+    public void createClass() throws IOException {
         task1 = new Task("Задача 1", "Описание задачи 1", 5, Status.NEW, LocalDateTime.of(2022, 10, 19, 11, 11, 11), Duration.ofMinutes(601L));
         task2 = new Task("Задача 2", "Описание задачи 2", 7, Status.IN_PROGRESS, LocalDateTime.of(2022, 10, 18, 1, 1, 1), Duration.ofMinutes(30L));
         task3 = new Task("Задача 3", "Описание задачи 3", 8, Status.DONE, LocalDateTime.of(2022, 10, 19, 2, 0, 0), Duration.ofMinutes(10));
@@ -83,207 +78,265 @@ class HttpTaskServerTest {
         server.start();
         taskServer = new HttpTaskServer();
         manager = taskServer.getManager();
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create("http://localhost:8078/register")).build();
-        apiToken = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+        gson = new Gson();
     }
 
     @Test
-    public void taskHandlerTests() throws IOException, InterruptedException {
+    public void addTaskTests() throws IOException, InterruptedException {
 //        when
-//        Добавление задач через HttpTaskServer
         String jsonStr = jsonTaskSerializer.taskToString(task1);
         sendRequestToTaskManager("task", jsonStr, "POST");
         jsonStr = jsonTaskSerializer.taskToString(task2);
         sendRequestToTaskManager("task", jsonStr, "POST");
         jsonStr = jsonTaskSerializer.taskToString(task3);
         sendRequestToTaskManager("task", jsonStr, "POST");
-//        Обновление задачи через HttpTaskServer
+//        then
+        Assertions.assertArrayEquals(new Task[]{task1, task2, task3}, manager.getTasks().values().toArray());
+    }
+
+    @Test
+    public void updateTaskTests() throws IOException, InterruptedException {
+//        given
+        manager.addTask(task1);
+        manager.addTask(task2);
+        manager.addTask(task3);
+//        when
         Task updatedTask = new Task("Обновленная задача 2", task2.getDescription(), task2.getId(), Status.DONE, task2.getStartTime(), task2.getDuration());
-        jsonStr = jsonTaskSerializer.taskToString(updatedTask);
+        String jsonStr = jsonTaskSerializer.taskToString(updatedTask);
         sendRequestToTaskManager("task?id=" + task2.getId(), jsonStr, "POST");
 //        then
-//        Проверка наличия добавленных задач на KV сервере
-        String responseBody = getValuesFromKVServer("tasks");
-        responseBody = responseBody.substring(1, responseBody.length() - 1);
-        String[] tasksArray = responseBody.split("---");
-        List<Task> returnedTasks = new ArrayList<>();
-        Arrays.stream(tasksArray).forEach(t -> returnedTasks.add(jsonTaskSerializer.taskFromString(JsonParser.parseString("\"" + t + "\"").getAsString())));
-        Assertions.assertEquals(List.of(task1, updatedTask, task3), returnedTasks);
+        Assertions.assertArrayEquals(new Task[]{task1, updatedTask, task3}, manager.getTasks().values().toArray());
+    }
 
-//        Запрос задач через HttpTaskServer
+    @Test
+    public void getTasksTests() throws IOException, InterruptedException {
+//        given
+        manager.addTask(task1);
+        manager.addTask(task2);
+        manager.addTask(task3);
 //        when
-        responseBody = sendRequestToTaskManager("task", "", "GET");
-        String[] tasksA = responseBody.split("---");
-        List<Task> retTasks = new ArrayList<>();
-        Arrays.stream(tasksA).forEach(t -> retTasks.add(jsonTaskSerializer.taskFromString(t)));
+        String responseBody = sendRequestToTaskManager("task", "", "GET");
 //        then
-        Assertions.assertEquals(List.of(task1, updatedTask, task3), retTasks);
+        List<Task> tasks = gson.fromJson(responseBody, new TypeToken<List<Task>>() {
+        }.getType());
+        Assertions.assertEquals(List.of(task1, task2, task3), tasks);
+    }
 
-//        Запрос задачи по id через HttpTaskServer
+    @Test
+    public void getTaskByIdTests() throws IOException, InterruptedException {
+//        given
+        manager.addTask(task1);
+        manager.addTask(task2);
+        manager.addTask(task3);
 //        when
         String tasksString = sendRequestToTaskManager("task?id=" + task3.getId(), "", "GET");
 //        then
         Assertions.assertEquals(task3, jsonTaskSerializer.taskFromString(tasksString));
+    }
 
-//        Удаление задачи через HttpTaskServer
-//        when
-        sendRequestToTaskManager("task?id=" + task1.getId(), "", "DELETE");
-        responseBody = getValuesFromKVServer("tasks");
-        responseBody = responseBody.substring(1, responseBody.length() - 1);
-        String[] array = responseBody.split("---");
-        Set<Integer> ids = new HashSet<>();
-        Arrays.stream(array).forEach(t -> ids.add(jsonTaskSerializer.taskFromString(JsonParser.parseString("\"" + t + "\"").getAsString()).getId()));
-//        then
-        Assertions.assertFalse(ids.contains(task1.getId()));
-        Assertions.assertNull(manager.getTask(task1.getId()));
-
-//        Удаление задач через HttpTaskServer
+    @Test
+    public void removeTasksTests() throws IOException, InterruptedException {
+//        given
+        manager.addTask(task1);
+        manager.addTask(task2);
+        manager.addTask(task3);
 //        when
         sendRequestToTaskManager("task", "", "DELETE");
 //        then
-        Assertions.assertEquals("\"\"", getValuesFromKVServer("tasks"));
         Assertions.assertEquals(0, manager.getTasks().size());
     }
 
     @Test
-    public void epicHandlerTests() throws IOException, InterruptedException {
+    public void removeTaskByIdTests() throws IOException, InterruptedException {
+//        given
+        manager.addTask(task1);
+        manager.addTask(task2);
+        manager.addTask(task3);
 //        when
-//        Добавление эпиков через HttpTaskServer
+        sendRequestToTaskManager("task?id=" + task1.getId(), "", "DELETE");
+//        then
+        Assertions.assertNull(manager.getTask(task1.getId()));
+    }
+
+    @Test
+    public void addEpicTests() throws IOException, InterruptedException {
+//        when
         String jsonStr = jsonTaskSerializer.epicToString(epic1);
         sendRequestToTaskManager("epic", jsonStr, "POST");
         jsonStr = jsonTaskSerializer.epicToString(epic2);
         sendRequestToTaskManager("epic", jsonStr, "POST");
         jsonStr = jsonTaskSerializer.epicToString(epic3);
         sendRequestToTaskManager("epic", jsonStr, "POST");
-//        Обновление эпиков через HttpTaskServer
-        Epic updatedEpic = new Epic("Обновленный эпик 1", "Обновленное описание эпика 1", 9);
-        jsonStr = jsonTaskSerializer.epicToString(updatedEpic);
-        sendRequestToTaskManager("epic?id=" + updatedEpic.getId(), jsonStr, "POST");
-
 //        then
-//        Проверка наличия добавленных эпиков на KV сервере
-        String response = getValuesFromKVServer("epics");
-        response = response.substring(1, response.length() - 1);
-        String[] epicsArray = response.split("---");
-        List<Epic> returnedEpics = new ArrayList<>();
-        Arrays.stream(epicsArray).forEach(t -> returnedEpics.add(jsonTaskSerializer.epicFromString(JsonParser.parseString("\"" + t + "\"").getAsString())));
-        Assertions.assertEquals(List.of(updatedEpic, epic2, epic3), returnedEpics);
+        Assertions.assertArrayEquals(new Epic[]{epic1, epic2, epic3}, manager.getEpics().values().toArray());
+    }
 
-//        Запрос эпиков через HttpTaskServer
+    @Test
+    public void updateEpicTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic1);
+        manager.addEpic(epic2);
+        manager.addEpic(epic3);
 //        when
-        response = sendRequestToTaskManager("epic", "", "GET");
-        String[] epicsA = response.split("---");
-        List<Epic> retEpics = new ArrayList<>();
-        Arrays.stream(epicsA).forEach(t -> retEpics.add(jsonTaskSerializer.epicFromString(t)));
+        Epic updatedEpic = new Epic("Обновленный эпик 1", "Обновленное описание эпика 1", epic1.getId());
+        String jsonStr = jsonTaskSerializer.epicToString(updatedEpic);
+        sendRequestToTaskManager("epic?id=" + updatedEpic.getId(), jsonStr, "POST");
 //        then
-        Assertions.assertEquals(List.of(updatedEpic, epic2, epic3), retEpics);
+        Assertions.assertArrayEquals(new Epic[]{updatedEpic, epic2, epic3}, manager.getEpics().values().toArray());
+    }
 
-//        Запрос эпиков по id через HttpTaskServer
+    @Test
+    public void getEpicsTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic1);
+        manager.addEpic(epic2);
+        manager.addEpic(epic3);
+//        when
+        String responseBody = sendRequestToTaskManager("epic", "", "GET");
+//        then
+        List<Epic> epics = gson.fromJson(responseBody, new TypeToken<List<Epic>>() {
+        }.getType());
+        Assertions.assertEquals(List.of(epic1, epic2, epic3), epics);
+    }
+
+    @Test
+    public void getEpicByIdTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic1);
+        manager.addEpic(epic2);
+        manager.addEpic(epic3);
 //        when
         String epicString = sendRequestToTaskManager("epic?id=" + epic3.getId(), "", "GET");
 //        then
         Assertions.assertEquals(epic3, jsonTaskSerializer.epicFromString(epicString));
+    }
 
-//        Запрос подзадач эпика через HttpTaskServer
-//        when
-        jsonStr = jsonTaskSerializer.subtaskToString(subtask1);
-        sendRequestToTaskManager("subtask", jsonStr, "POST");
-        jsonStr = jsonTaskSerializer.subtaskToString(subtask2);
-        sendRequestToTaskManager("subtask", jsonStr, "POST");
-        jsonStr = jsonTaskSerializer.subtaskToString(subtask3);
-        sendRequestToTaskManager("subtask", jsonStr, "POST");
-        response = sendRequestToTaskManager("subtask/epic&?id=10", "", "GET");
-        String[] subtaskArray = response.split("---");
-        List<Subtask> retSubtask = new ArrayList<>();
-        Arrays.stream(subtaskArray).forEach(t -> retSubtask.add(jsonTaskSerializer.subtaskFromString(t)));
-//        then
-        Assertions.assertEquals(List.of(subtask1, subtask2, subtask3), retSubtask);
-
-//        Удаление эпиков через HttpTaskServer
-//        when
-        sendRequestToTaskManager("epic?id=" + updatedEpic.getId(), "", "DELETE");
-        response = getValuesFromKVServer("epics");
-        response = response.substring(1, response.length() - 1);
-        String[] array = response.split("---");
-        Set<Integer> ids = new HashSet<>();
-        Arrays.stream(array).forEach(t -> ids.add(jsonTaskSerializer.epicFromString(JsonParser.parseString("\"" + t + "\"").getAsString()).getId()));
-//        then
-        Assertions.assertFalse(ids.contains(updatedEpic.getId()));
-        Assertions.assertNull(manager.getEpic(updatedEpic.getId()));
-
-//        Удаление эпиков через HttpTaskServer
+    @Test
+    public void removeEpicsTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic1);
+        manager.addEpic(epic2);
+        manager.addEpic(epic3);
 //        when
         sendRequestToTaskManager("epic", "", "DELETE");
 //        then
-        Assertions.assertEquals("\"\"", getValuesFromKVServer("epics"));
         Assertions.assertEquals(0, manager.getEpics().size());
     }
 
     @Test
-    public void subtaskHandlerTests() throws IOException, InterruptedException {
+    public void removeEpicByIdTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic1);
+        manager.addEpic(epic2);
+        manager.addEpic(epic3);
 //        when
-//        Добавление подзадач через HttpTaskServer
-        String jsonStr = jsonTaskSerializer.epicToString(epic2);
-        sendRequestToTaskManager("epic", jsonStr, "POST");
-        jsonStr = jsonTaskSerializer.subtaskToString(subtask1);
+        sendRequestToTaskManager("epic?id=" + epic1.getId(), "", "DELETE");
+//        then
+        Assertions.assertNull(manager.getTask(epic1.getId()));
+    }
+
+    @Test
+    public void getEpicSubtasksTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic2);
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
+        manager.addSubtask(subtask3);
+//        when
+        String response = sendRequestToTaskManager("subtask/epic&?id=" + epic2.getId(), "", "GET");
+//        then
+        List<Subtask> subtasks = gson.fromJson(response, new TypeToken<List<Subtask>>() {
+        }.getType());
+        Assertions.assertEquals(List.of(subtask1, subtask2, subtask3), subtasks);
+    }
+
+    @Test
+    public void addSubtaskTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic2);
+//        when
+        String jsonStr = jsonTaskSerializer.subtaskToString(subtask1);
         sendRequestToTaskManager("subtask", jsonStr, "POST");
         jsonStr = jsonTaskSerializer.subtaskToString(subtask2);
         sendRequestToTaskManager("subtask", jsonStr, "POST");
         jsonStr = jsonTaskSerializer.subtaskToString(subtask3);
         sendRequestToTaskManager("subtask", jsonStr, "POST");
-//        Обновление подзадач через HttpTaskServer
-        Subtask updatedSubtask = new Subtask("Обновленная подзадача 2", "Обновленное описание подзадачи 2", 10, 13, Status.IN_PROGRESS, LocalDateTime.of(2022, 10, 21, 2, 0, 0), Duration.ofMinutes(10));
-        jsonStr = jsonTaskSerializer.subtaskToString(updatedSubtask);
+//        then
+        Assertions.assertArrayEquals(new Subtask[]{subtask1, subtask2, subtask3}, manager.getSubtasks().values().toArray());
+    }
+
+    @Test
+    public void updateSubtaskTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic2);
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
+        manager.addSubtask(subtask3);
+//        when
+        Subtask updatedSubtask = new Subtask("Обновленная подзадача 2", "Обновленное описание подзадачи 2", 10, subtask2.getId(), Status.IN_PROGRESS, LocalDateTime.of(2022, 10, 21, 2, 0, 0), Duration.ofMinutes(10));
+        String jsonStr = jsonTaskSerializer.subtaskToString(updatedSubtask);
         sendRequestToTaskManager("subtask?id=" + updatedSubtask.getId(), jsonStr, "POST");
-
 //        then
-//        Проверка наличия добавленных подзадач на KV сервере
-        String response = getValuesFromKVServer("subtasks");
-        response = response.substring(1, response.length() - 1);
-        String[] subtaskArray = response.split("---");
-        List<Subtask> returnedSubtasks = new ArrayList<>();
-        Arrays.stream(subtaskArray).forEach(t -> returnedSubtasks.add(jsonTaskSerializer.subtaskFromString(JsonParser.parseString("\"" + t + "\"").getAsString())));
-        Assertions.assertEquals(List.of(subtask1, updatedSubtask, subtask3), returnedSubtasks);
+        Assertions.assertArrayEquals(new Subtask[]{subtask1, updatedSubtask, subtask3}, manager.getSubtasks().values().toArray());
+    }
 
-//        Запрос подзадач через HttpTaskServer
+    @Test
+    public void getSubtasksTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic2);
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
+        manager.addSubtask(subtask3);
 //        when
-        response = sendRequestToTaskManager("subtask", "", "GET");
-        String[] subtasksA = response.split("---");
-        List<Subtask> retEpics = new ArrayList<>();
-        Arrays.stream(subtasksA).forEach(t -> retEpics.add(jsonTaskSerializer.subtaskFromString(t)));
+        String responseBody = sendRequestToTaskManager("subtask", "", "GET");
 //        then
-        Assertions.assertEquals(List.of(subtask1, updatedSubtask, subtask3), retEpics);
+        List<Subtask> subtasks = gson.fromJson(responseBody, new TypeToken<List<Subtask>>() {
+        }.getType());
+        Assertions.assertEquals(List.of(subtask1, subtask2, subtask3), subtasks);
+    }
 
-//        Запрос подзадач по id через HttpTaskServer
+    @Test
+    public void getSubtaskByIdTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic2);
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
+        manager.addSubtask(subtask3);
 //        when
-        String subtaskString = sendRequestToTaskManager("subtask?id=" + subtask3.getId(), "", "GET");
+        String subtaskString = sendRequestToTaskManager("subtask?id=" + subtask2.getId(), "", "GET");
 //        then
-        Assertions.assertEquals(subtask3, jsonTaskSerializer.subtaskFromString(subtaskString));
+        Assertions.assertEquals(subtask2, jsonTaskSerializer.subtaskFromString(subtaskString));
+    }
 
-//        Удаление подзадач по id через HttpTaskServer
-//        when
-        sendRequestToTaskManager("subtask?id=" + subtask1.getId(), "", "DELETE");
-        response = getValuesFromKVServer("subtasks");
-        response = response.substring(1, response.length() - 1);
-        String[] array = response.split("---");
-        Set<Integer> ids = new HashSet<>();
-        Arrays.stream(array).forEach(t -> ids.add(jsonTaskSerializer.subtaskFromString(JsonParser.parseString("\"" + t + "\"").getAsString()).getId()));
-//        then
-        Assertions.assertFalse(ids.contains(subtask1.getId()));
-        Assertions.assertNull(manager.getSubtask(subtask1.getId()));
-
-//        Удаление эпиков через HttpTaskServer
+    @Test
+    public void removeSubtasksTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic2);
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
+        manager.addSubtask(subtask3);
 //        when
         sendRequestToTaskManager("subtask", "", "DELETE");
 //        then
-        Assertions.assertEquals("\"\"", getValuesFromKVServer("subtasks"));
         Assertions.assertEquals(0, manager.getSubtasks().size());
     }
 
     @Test
-    public void historyHandlerTests() throws IOException, InterruptedException {
+    public void removeSubtaskByIdTests() throws IOException, InterruptedException {
+//        given
+        manager.addEpic(epic2);
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
+        manager.addSubtask(subtask3);
 //        when
+        sendRequestToTaskManager("subtask?id=" + subtask2.getId(), "", "DELETE");
+//        then
+        Assertions.assertNull(manager.getSubtask(subtask2.getId()));
+    }
+
+    @Test
+    public void getHistoryTests() throws IOException, InterruptedException {
+//        given
         String stringTask1 = jsonTaskSerializer.taskToString(task1);
         String stringTask2 = jsonTaskSerializer.taskToString(task2);
         String stringEpic2 = jsonTaskSerializer.epicToString(epic2);
@@ -300,44 +353,27 @@ class HttpTaskServerTest {
         sendRequestToTaskManager("task?id=" + task2.getId(), "", "GET");
         sendRequestToTaskManager("subtask?id=" + subtask1.getId(), "", "GET");
         sendRequestToTaskManager("task?id=" + task1.getId(), "", "GET");
-//        Запрос истории на KV сервере
-        String response = getValuesFromKVServer("history");
-        Gson gson = new Gson();
-        response = gson.fromJson(response, String.class);
-        response = response.substring(1, response.length() - 1);
-        List<Integer> history = jsonTaskSerializer.historyFromString(response);
-//        then
-        Assertions.assertEquals(List.of(13, 10, 7, 12, 5), history);
-
-//        Запрос истории через HttpTaskServer
 //        when
-        response = sendRequestToTaskManager("history", "", "GET");
-        response = response.substring(1, response.length() - 1);
-        history = jsonTaskSerializer.historyFromString(response);
+        String response = sendRequestToTaskManager("history", "", "GET");
+        List<Integer> history = jsonTaskSerializer.historyFromString(response);
 //        then
         Assertions.assertEquals(List.of(13, 10, 7, 12, 5), history);
     }
 
     @Test
     public void prioritizedTaskHandlerTests() throws IOException, InterruptedException {
+//        given
+        manager.addTask(task1);
+        manager.addTask(task2);
+        manager.addEpic(epic2);
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
 //        when
-        String stringTask1 = jsonTaskSerializer.taskToString(task1);
-        String stringTask2 = jsonTaskSerializer.taskToString(task2);
-        String stringEpic2 = jsonTaskSerializer.epicToString(epic2);
-        String stringSubtask1 = jsonTaskSerializer.subtaskToString(subtask1);
-        String stringSubtask2 = jsonTaskSerializer.subtaskToString(subtask2);
-        sendRequestToTaskManager("task", stringTask1, "POST");
-        sendRequestToTaskManager("task", stringTask2, "POST");
-        sendRequestToTaskManager("epic", stringEpic2, "POST");
-        sendRequestToTaskManager("subtask", stringSubtask1, "POST");
-        sendRequestToTaskManager("subtask", stringSubtask2, "POST");
-//        Запрос задач через HttpTaskServer
         String response = sendRequestToTaskManager("", "", "GET");
-        String[] prioritizedTasksA = response.split("---");
-        List<AbstractTask> prioritizedTasks = new ArrayList<>();
-        Arrays.stream(prioritizedTasksA).forEach(t -> prioritizedTasks.add(jsonTaskSerializer.prioritizedTaskFromString(t)));
 //        then
-        Assertions.assertEquals(List.of(task2, task1, subtask1, subtask2), prioritizedTasks);
+        List<Integer> prioritizedTasks = gson.fromJson(response, new TypeToken<ArrayList<Integer>>() {
+        }.getType());
+        Assertions.assertEquals(List.of(7, 5, 12, 13), prioritizedTasks);
     }
 
     @AfterEach

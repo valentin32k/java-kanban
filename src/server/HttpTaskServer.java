@@ -95,10 +95,7 @@ public class HttpTaskServer {
                             if (taskManager.getTasks() == null) {
                                 response = "Задачи в хранилище не найдены";
                             } else {
-                                TaskSerializer jsonTaskSerializer = new JsonTaskSerializer();
-                                List<String> list = new ArrayList<>();
-                                taskManager.getTasks().values().forEach(t -> list.add(jsonTaskSerializer.taskToString(t)));
-                                response = String.join("---", list);
+                                response = gson.toJson(taskManager.getTasks().values());
                             }
                             break;
                         case "POST":
@@ -184,10 +181,7 @@ public class HttpTaskServer {
                             if (taskManager.getSubtasks() == null) {
                                 response = "Задачи в хранилище не найдены";
                             } else {
-                                TaskSerializer jsonTaskSerializer = new JsonTaskSerializer();
-                                List<String> list = new ArrayList<>();
-                                taskManager.getSubtasks().values().forEach(t -> list.add(jsonTaskSerializer.subtaskToString(t)));
-                                response = String.join("---", list);
+                                response = gson.toJson(taskManager.getSubtasks().values());
                             }
                             break;
                         case "POST":
@@ -242,10 +236,7 @@ public class HttpTaskServer {
                         id = Integer.valueOf(queryArray[1]);
                         if (method.equals("GET")) {
                             if (taskManager.getEpicSubtasks(id) != null) {
-                                TaskSerializer jsonTaskSerializer = new JsonTaskSerializer();
-                                List<String> list = new ArrayList<>();
-                                taskManager.getEpicSubtasks(id).values().forEach(t -> list.add(jsonTaskSerializer.subtaskToString(t)));
-                                response = String.join("---", list);
+                                response = gson.toJson(taskManager.getEpicSubtasks(id).values());
                             }
                         }
                     }
@@ -315,10 +306,7 @@ public class HttpTaskServer {
                             if (taskManager.getEpics() == null) {
                                 response = "Эпики в хранилище не найдены";
                             } else {
-                                TaskSerializer jsonTaskSerializer = new JsonTaskSerializer();
-                                List<String> list = new ArrayList<>();
-                                taskManager.getEpics().values().forEach(t -> list.add(jsonTaskSerializer.epicToString(t)));
-                                response = String.join("---", list);
+                                response = gson.toJson(taskManager.getEpics().values());
                             }
                             break;
                         case "POST":
@@ -388,10 +376,9 @@ public class HttpTaskServer {
         public void handle(HttpExchange httpExchange) {
             try {
                 if (httpExchange.getRequestMethod().equals("GET")) {
-                    List<String> list = new ArrayList<>();
-                    JsonTaskSerializer jsonTaskSerializer = new JsonTaskSerializer();
-                    taskManager.getPrioritizedTasks().forEach(t -> list.add(jsonTaskSerializer.prioritizedTaskToString(t)));
-                    String response = String.join("---", list);
+                    List<Integer> prioritizedTasksIds = new ArrayList<>();
+                    taskManager.getPrioritizedTasks().forEach(h -> prioritizedTasksIds.add(h.getId()));
+                    String response = gson.toJson(prioritizedTasksIds);
                     httpExchange.sendResponseHeaders(200, 0);
                     try (OutputStream os = httpExchange.getResponseBody()) {
                         os.write(response.getBytes(StandardCharsets.UTF_8));

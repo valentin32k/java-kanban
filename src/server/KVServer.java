@@ -53,13 +53,15 @@ public class KVServer {
 				h.sendResponseHeaders(400, 0);
 				return;
 			}
-			if (data.get(key) == null) {
+			String response = data.get(key);
+			if (response == null) {
+//				А в каких случаях метод get() для HashMap с ключом типа String будет дорогой операцией?
+//				Мне что-то кроме случая когда значение initialCapacity = 1 ничего в голову не приходит.
+//				И то там O(log n) и только для нескольких значений - O(n)
 				System.out.println("Запрошенная запись с ключом " + key + " отсутствует");
 				h.sendResponseHeaders(404, 0);
 				return;
 			}
-			Gson gson = new Gson();
-			String response = gson.toJson(data.get(key));
 			h.sendResponseHeaders(200, 0);
 			try (OutputStream os = h.getResponseBody()) {
 				os.write(response.getBytes(StandardCharsets.UTF_8));

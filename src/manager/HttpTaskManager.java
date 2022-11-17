@@ -1,13 +1,16 @@
 package manager;
 
-import com.google.gson.JsonParser;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import server.KVTaskClient;
+import tasks.AbstractTask;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class HttpTaskManager extends FileBackedTaskManager {
@@ -20,39 +23,26 @@ public class HttpTaskManager extends FileBackedTaskManager {
     }
 
     private void loadValues() {
-        TaskSerializer jsonTaskSerializer = new JsonTaskSerializer();
+        Gson gson = new Gson();
         String tasksStr = tasksServerClient.load("tasks");
         String epicsStr = tasksServerClient.load("epics");
         String subtasksStr = tasksServerClient.load("subtasks");
-        String historyString = tasksServerClient.load("history");
+        String historyStr = tasksServerClient.load("history");
         if (!tasksStr.isEmpty()) {
-            tasksStr = tasksStr.substring(1, tasksStr.length() - 1);
-            String[] tasksArray = tasksStr.split("---");
-            for (String taskStr : tasksArray) {
-                Task task = jsonTaskSerializer.taskFromString(JsonParser.parseString("\"" + taskStr + "\"").getAsString());
-                addTask(task);
-            }
-        }
-        if (!epicsStr.isEmpty()) {
-            epicsStr = epicsStr.substring(1, epicsStr.length() - 1);
-            String[] epicsArray = epicsStr.split("---");
-            for (String epicStr : epicsArray) {
-                Epic epic = jsonTaskSerializer.epicFromString(JsonParser.parseString("\"" + epicStr + "\"").getAsString());
-                addEpic(epic);
-            }
+            ArrayList<Task> tasksArray = gson.fromJson(tasksStr, new TypeToken<Collection<Task>>() {}.getType());
+            tasksArray.forEach(this::addTask);
         }
         if (!subtasksStr.isEmpty()) {
-            subtasksStr = subtasksStr.substring(1, subtasksStr.length() - 1);
-            String[] subtaskArray = subtasksStr.split("---");
-            for (String subtaskStr : subtaskArray) {
-                Subtask subtask = jsonTaskSerializer.subtaskFromString(JsonParser.parseString("\"" + subtaskStr + "\"").getAsString());
-                addSubtask(subtask);
-            }
+            ArrayList<Epic> epicsArray = gson.fromJson(epicsStr, new TypeToken<ArrayList<Epic>>() {}.getType());
+            epicsArray.forEach(this::addEpic);
         }
-        if (historyString.length() > 6) {
-            historyString = historyString.substring(3, historyString.length() - 3);
-            List<Integer> history = jsonTaskSerializer.historyFromString(historyString);
-            for (Integer id : history) {
+        if (!subtasksStr.isEmpty()) {
+            ArrayList<Subtask> subtasksArray = gson.fromJson(subtasksStr, new TypeToken<ArrayList<Subtask>>() {}.getType());
+            subtasksArray.forEach(this::addSubtask);
+        }
+        if (!historyStr.isEmpty()) {
+            ArrayList<Integer> historyIds = gson.fromJson(historyStr, new TypeToken<ArrayList<Integer>>() {}.getType());
+            for (Integer id : historyIds) {
                 getTask(id);
                 getEpic(id);
                 getSubtask(id);
@@ -63,21 +53,14 @@ public class HttpTaskManager extends FileBackedTaskManager {
     @Override
     protected void save() {
         try {
-            TaskSerializer jsonTaskSerializer = new JsonTaskSerializer();
-            List<String> list = new ArrayList<>();
-            tasksById.values().forEach(t -> list.add(jsonTaskSerializer.taskToString(t)));
-            String tasksStr = String.join("---", list);
-            tasksServerClient.put("tasks", tasksStr);
-            list.clear();
-            epicsById.values().forEach(t -> list.add(jsonTaskSerializer.epicToString(t)));
-            String epicsStr = String.join("---", list);
-            tasksServerClient.put("epics", epicsStr);
-            list.clear();
-            subtasksById.values().forEach(t -> list.add(jsonTaskSerializer.subtaskToString(t)));
-            String subtaskStr = String.join("---", list);
-            tasksServerClient.put("subtasks", subtaskStr);
-            list.clear();
-            tasksServerClient.put("history", jsonTaskSerializer.historyToString(getHistory()));
+            Gson gson = new Gson();
+            tasksServerClient.put("tasks", gson.toJson(tasksById.values()));
+            tasksServerClient.put("epics", gson.toJson(epicsById.values()));
+            tasksServerClient.put("subtasks", gson.toJson(subtasksById.values()));
+            List<AbstractTask> historyTasks = getHistory();
+            List<Integer> historyIds = new ArrayList<>();
+            historyTasks.forEach(h -> historyIds.add(h.getId()));
+            tasksServerClient.put("history", gson.toJson(historyIds));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
